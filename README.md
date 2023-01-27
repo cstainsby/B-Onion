@@ -6,4 +6,4 @@ Link to [project proposal](https://github.com/cstainsby/B-Onion/tree/main/docs/p
 
 Link to [project log](https://github.com/cstainsby/B-Onion/tree/main/docs/project-log)
 
-Link to [research proposal](https://github.com/cstainsby/B-Onion/tree/main/docs/project-proposal)
+Link to [research proposal](https://github.com/cstainsby/B-Onion/tree/main/docs/research-proposal)
