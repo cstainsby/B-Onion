@@ -1,7 +1,5 @@
 # Research Proposal
 
-## Initial 
-
 ## DS Area
 This project will be an NLP project.
 
@@ -46,5 +44,8 @@ Link to a possible [course](https://www.cloudskillsboost.google/paths/18)
 
 Here are the time estimates for each of these 
 (NOTE these are high end estimates)
-- Tensorflow: 
+- related Tensorflow: 20-30 hrs
+- GCP: ?
 - Tableau: 82 hrs
+
+**NOTE**: I don't know *exactly* how GCP will fit into my project, I will try to follow up soon to find out what is a good fit/what I should spend my time learning.
