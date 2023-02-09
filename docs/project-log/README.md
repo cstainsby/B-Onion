@@ -1,3 +1,0 @@
-# Project Log
-
-**TODO**

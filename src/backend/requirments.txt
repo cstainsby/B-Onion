@@ -1,0 +1,7 @@
+gunicorn
+pandas 
+numpy
+flask
+flask-cors 
+h5py
+pytorch
