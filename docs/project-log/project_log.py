@@ -1,6 +1,6 @@
 
 import os
-from datetime import date, timedelta  
+from datetime import datetime, date, timedelta  
 
 """opens readme, creates one if it doesn't exist"""
 def open_readme():
@@ -26,13 +26,47 @@ def create_project_log(path_to_log: str):
   out_file = open(path_to_log + "/README.md", "w")
   out_file.write("# Project Log \n")
 
-  for n in range(int ((END_DATE - START_DATE).days / 7) + 1):
-    yield START_DATE + timedelta(n * 7)
+  # for n in range(int ((END_DATE - START_DATE).days / 7) + 1):
+  #   curr_date = START_DATE + timedelta(n * 7)
+  #   out_file.write("## week of: " + str(curr_date.month) + "/" + str(curr_date.day) + "\n\n")
 
   return out_file
 
+"""The README will have headers denoting what week every post was made under
+    This function will grab all of them from the readme and put them in a list"""
+def get_weekly_headers(readme):
+  weekly_headers = []
+
+  lines = readme.readlines()
+
+  for line in lines:
+    if len(line) > 4 and line[0] == '#' and line[1] == '#': # doulbe hash is reserved for line
+      weekly_headers.append(line[3:])
+
+  return weekly_headers
+
+def is_week_header_in_readme(readme):
+  weekly_headers = get_weekly_headers(readme)
+
+  curr_day_of_the_week = datetime.now().weekday()
+  current_date = date.today()
+
+  day_of_last_monday = current_date.day - timedelta(curr_day_of_the_week)
+
+
+  
+
+def log_post_to_readme():
+  curr_day_of_the_week = datetime.now().weekday()
+  current_date = date.today()
+
+
+
+
 def main():
   readme = open_readme()
+
+  readme.close()
 
 
 
