@@ -1,12 +1,7 @@
 # Project Proposal
 
-
 ## What Is This Project About
-This Project is based around building a transformer to generate satirical Onion-like articles based on a text input. 
-### Look at MVP 
-
-### Some Stretch Goals 
-
+This Project is based around building a transformer to generate satirical Onion-like articles based on a text input. It will use the Google Cloud Platform to allow users to connect to a GUI where they can interact with it and make their own articles. It will also have reoccuring GCP functions which take in twitter topics to make twitter posts based on those articles.
 
 
 ### Stakeholders 
@@ -56,6 +51,10 @@ For the MVP, I'm only planning on using the GCP app engine to host the model and
 Here is a [link](https://cloud.google.com/appengine/pricing) to where I found this pricing info.
 
 Hopefully, the model will be pre-trained by the time I push it so I won't need to worry about model training costs on GCP.
+
+I also want to use google cloud functions to automatically grab twitter posts to generate articles which can be then posted and linked to on twitter. 
+
+According to Googles pricing [page](https://cloud.google.com/functions/pricing), it'll basically be free to do what I want to do.
 
 
 # Risks 
