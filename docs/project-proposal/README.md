@@ -3,6 +3,8 @@
 ## What Is This Project About
 This Project is based around building a transformer to generate satirical Onion-like articles based on a text input. It will use the Google Cloud Platform to allow users to connect to a GUI where they can interact with it and make their own articles. It will also have reoccuring GCP functions which take in twitter topics to make twitter posts based on those articles.
 
+![Diagram](../img/dataProjectDiagram.png)
+
 
 ### Stakeholders 
 This will eventually be an internet facing application which will be discoverable by anyone who wants to read what it generates. If time allows I will try to add some capabilities for it to post said article to a social media site, maybe twitter for example. For my MVP though it will be discoverable by the larger internet through its own website. 
