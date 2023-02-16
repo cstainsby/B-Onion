@@ -1,4 +1,4 @@
-FROM continuumio/anaconda3:2021.11
+FROM python:NNN-slim
 
 # create app folder and copy in code 
 WORKDIR /app

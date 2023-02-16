@@ -1,7 +1,7 @@
 import os
 import csv 
 
-current_dir_path = os.path.dirname(os.path.realpath(__file__))
+from pathing_info import pathing_info
 
 PROJECT_ID = "bonion"
 REGION="us-west-2"
@@ -16,17 +16,19 @@ image_tag = "{region}-docker.pkg.dev/{project_id}/{repo}/{image_name} .".format(
             )
 
 def read_cred_file():
-  credential_file_name = "docker_creds.csv"
-  file_path = current_dir_path + "/" + credential_file_name
+  docker_creds_file_name = "docker_creds.csv"
+  credential_path = pathing_info["credential_path"]
+
+  docker_creds_file_path = credential_path  + "/" + docker_creds_file_name
   username, password = "", ""
 
-  print("file path: " + file_path)
-  file_exist = os.path.exists(file_path)
+  print("file path: " + docker_creds_file_path)
+  file_exist = os.path.exists(docker_creds_file_path)
 
   if file_exist:
     csv_contents = []
 
-    with open(file_path, "r") as cred_file:
+    with open(docker_creds_file_path, "r") as cred_file:
       csv_reader = csv.reader(cred_file)
       
       for row in csv_reader:
@@ -49,8 +51,9 @@ def login():
 
 # build container
 def build():
+  backend_path = pathing_info["backend_path"]
   os.system(
-      "docker build -tag={image_tag} .".format(image_tag=image_tag)
+      "docker build -tag={image_tag} {backend_path}/.".format(image_tag=image_tag, backend_path=backend_path)
     )
   
 def run_local():
@@ -62,4 +65,4 @@ def run_local():
 if __name__ == "__main__":
   login()
   build()
-  run_local()
+  # run_local()
