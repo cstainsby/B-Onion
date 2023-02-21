@@ -1,55 +1,95 @@
+"""model.py
+
+This file houses all of the implemented parts of the transformer
+model I will be using
+
+Link to the site which includes code and explanations of how stuff works
+in depth:
+https://nlp.seas.harvard.edu/2018/04/03/attention.html#data-loading
+
+Link to blog post on how to get started with pytorch tranformer implementation
+https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
+
+Pytorch model documentation:
+https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html
+https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+
+
+Some Notes:
+The encoder takes a descrete sequence, like a sentence, and converts
+    it into a continuous representation. 
+The Decoder takes this continuous representation and makes an output 
+    sequence one element at a time. Each element has dependancies on
+    all the elements that came before.
+
+The encoder and decoder are both made up of stacks that identical layers
+
+Attention is this context is a function that maps a query and a set of key
+    value pairs to an output where query, keys, values, and output are all vectors
+
+"""
+
+
 import math
 import os
+import copy
 from tempfile import TemporaryDirectory
 from typing import Tuple
 
 import torch
 from torch import nn, Tensor
 import torch.nn.functional as F
-from torch.nn import TransformerEncoder, TransformerEncoderLayer
+from torch.nn import TransformerEncoder, TransformerEncoderLayer, TransformerDecoder, TransformerDecoderLayer
 from torch.utils.data import dataset
 
-
-class TransformerModel(nn.Module):
-
-    def __init__(self, ntoken: int, d_model: int, nhead: int, d_hid: int,
-                 nlayers: int, dropout: float = 0.5):
+class Transformer(nn.Module):
+    def __init__(
+            self,
+            num_tokens: int,             
+            dim_model: int,              # defines how many dimensions the model has
+            num_heads: int,
+            num_encoder_layers: int,     # defines how many layers the encoder will use
+            num_decoder_layers: int,     # defines how many layers the decoder will use
+            dropout_p: float = 0.5       # dropout percentage
+        ) -> None:
         super().__init__()
-        self.model_type = 'Transformer'
-        self.pos_encoder = PositionalEncoding(d_model, dropout)
-        encoder_layers = TransformerEncoderLayer(d_model, nhead, d_hid, dropout)
-        self.transformer_encoder = TransformerEncoder(encoder_layers, nlayers)
-        self.encoder = nn.Embedding(ntoken, d_model)
-        self.d_model = d_model
-        self.decoder = nn.Linear(d_model, ntoken)
 
-        self.init_weights()
+        self.model_type = "Transformer"
+        self.dim_model = dim_model
 
-    def init_weights(self) -> None:
-        initrange = 0.1
-        self.encoder.weight.data.uniform_(-initrange, initrange)
-        self.decoder.bias.data.zero_()
-        self.decoder.weight.data.uniform_(-initrange, initrange)
+        self.positional_encoder = PositionalEncoding(
+            d_model=dim_model,
+            dropout=dropout_p
+        )
 
-    def forward(self, src: Tensor, src_mask: Tensor) -> Tensor:
-        """
-        Args:
-            src: Tensor, shape [seq_len, batch_size]
-            src_mask: Tensor, shape [seq_len, seq_len]
+        #NOTE: might have to play around with dim_feedforward for both
+        #       the encoder and decoder
 
-        Returns:
-            output Tensor of shape [seq_len, batch_size, ntoken]
-        """
-        src = self.encoder(src) * math.sqrt(self.d_model)
-        src = self.pos_encoder(src)
-        output = self.transformer_encoder(src, src_mask)
-        output = self.decoder(output)
-        return output
+        encoder_layer = TransformerEncoderLayer(
+            d_model=dim_model,
+            nhead=num_heads,
+            dropout=dropout_p
+        )
+        self.transformer_encoder = TransformerEncoder(
+            encoder_layer=encoder_layer,
+            num_layers=num_encoder_layers
+        )
+        self.encoder = nn.Embedding(
+            num_embeddings=num_tokens,
+            embedding_dim=dim_model
+        )
 
+        decoder_layer = TransformerDecoderLayer(
+            d_model=dim_model,
+            nhead=num_heads,
+            dropout=dropout_p
+        )
 
-def generate_square_subsequent_mask(sz: int) -> Tensor:
-    """Generates an upper-triangular matrix of -inf, with zeros on diag."""
-    return torch.triu(torch.ones(sz, sz) * float('-inf'), diagonal=1)
+        self.decoder = nn.Linear(dim_model, num_tokens)
+    
+    def forward(self, src, tgt):
+        pass
+
 
 class PositionalEncoding(nn.Module):
 
