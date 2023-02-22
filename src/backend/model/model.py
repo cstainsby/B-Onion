@@ -47,6 +47,7 @@ class Transformer(nn.Module):
             self,
             num_tokens: int,             
             dim_model: int,              # defines how many dimensions the model has
+            em_dim: int,                 # defines the embedding dimension
             num_heads: int,
             num_encoder_layers: int,     # defines how many layers the encoder will use
             num_decoder_layers: int,     # defines how many layers the decoder will use
@@ -76,7 +77,7 @@ class Transformer(nn.Module):
         )
         self.encoder = nn.Embedding(
             num_embeddings=num_tokens,
-            embedding_dim=dim_model
+            embedding_dim=em_dim
         )
 
         decoder_layer = TransformerDecoderLayer(
@@ -84,11 +85,25 @@ class Transformer(nn.Module):
             nhead=num_heads,
             dropout=dropout_p
         )
-
-        self.decoder = nn.Linear(dim_model, num_tokens)
+        self.transformer_decoder = TransformerDecoder(
+            decoder_layer=decoder_layer,
+            num_layers=num_decoder_layers
+        )
+        self.decoder = nn.Embedding(
+            num_embeddings=num_tokens,
+            embedding_dim=em_dim
+        )
     
-    def forward(self, src, tgt):
-        pass
+    # def init_weights(self) -> None:
+    #     initrange = 0.1
+    #     self.encoder.weight.data.uniform_(-initrange, initrange)
+    
+    def forward(self, src: Tensor, src_mask: Tensor):
+        src = self.encoder(src) * math.sqrt(self.dim_model)
+        src = self.positional_encoder(src)
+
+        out = self.transformer_encoder(src, src_mask)
+        out = self.deco
 
 
 class PositionalEncoding(nn.Module):
