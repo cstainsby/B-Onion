@@ -1,7 +1,7 @@
 import os
 import csv 
 
-from pathing_info import pathing_info
+from backend.pathing_info import pathing_info
 
 PROJECT_ID = "bonion"
 REGION="us-west-2"

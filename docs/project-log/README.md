@@ -15,3 +15,15 @@ Rather than vertex AI, I'm now looking at Google's app engine to run my flask ap
 I have also started working on the initial pytorch tranformer, I am downloading the stanford GloVe dataset to import their word embeddings and see how they perform at a basic level.
 
 I have also finished my project proposal, a more in depth description of what the project will be can be found there.
+
+
+### 2/22 
+As of right now I have been digging into how transformers work and how to set one up for the needs of my project. 
+
+Important links to articles I've been using 
+-  [Basic tutorial](https://pytorch.org/tutorials/beginner/transformer_tutorial.html) for pytorch transformer classification
+-  [Harvard Paper](https://nlp.seas.harvard.edu/2018/04/03/attention.html#data-loading) with annotated details on how to build a transformer from scratch and how each part works
+-  [Blog Post](https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1) on how to get started with pytorch transformers as a beginner 
+
+
+I've also been working on making it possible for me to train my model remotely through the Gonzaga provided server. This has included setting up a way to save my trained model state with pytorch using their [built in functionality](https://pytorch.org/tutorials/beginner/saving_loading_models.html). Also I've been looking into **screen** as a way to ssh into their network to use their compute resources, [here is a link](https://linuxize.com/post/how-to-use-linux-screen/) to use it at a basic level.

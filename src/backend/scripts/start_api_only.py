@@ -1,6 +1,6 @@
 import os
 
-from pathing_info import pathing_info
+from backend.pathing_info import pathing_info
 
 
 def run_api_only():
