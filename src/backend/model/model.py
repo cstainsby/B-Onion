@@ -33,96 +33,167 @@ Attention is this context is a function that maps a query and a set of key
 import math
 import os
 import copy
+import numpy as np
 from tempfile import TemporaryDirectory
 from typing import Tuple
 
 import torch
 from torch import nn, Tensor
+from torch.autograd import Variable
 import torch.nn.functional as F
-from torch.nn import TransformerEncoder, TransformerEncoderLayer, TransformerDecoder, TransformerDecoderLayer
+from torch.nn import TransformerEncoder, TransformerEncoderLayer, TransformerDecoder, TransformerDecoderLayer, LayerNorm
 from torch.utils.data import dataset
 
-class Transformer(nn.Module):
+
+
+class LanguageModel(nn.Module):
+    """A Wrapper for the transformer used by our model, 
+    also holds
+        - positional encoder 
+
+    """
+    def __init__(self,
+                num_tokens: int,             
+                dim_model: int,                     # defines how many dimensions the model has (maximum sequence length)
+                em_dim: int,                        # defines the embedding dimension
+                num_heads: int,                     # the number of attention heads
+                dimensions_of_feedforward: int,     # dimension of the feed forward layer
+                num_encoder_layers: int,            # defines how many layers the encoder will use
+                num_decoder_layers: int,            # defines how many layers the decoder will use
+                dropout_p: float = 0.5              # dropout percentage/rate) -> None:
+        ) -> None:
+        super().__init__()
+
+        self.encoder_decoder = EncoderDecoder(
+            num_tokens=num_tokens,
+            dim_model=dim_model,
+            em_dim=em_dim,
+            num_heads=num_heads,
+            dimensions_of_feedforward=dimensions_of_feedforward,
+            num_encoder_layers=num_encoder_layers,
+            num_decoder_layers=num_decoder_layers,
+            dropout_p=dropout_p
+        )
+        
+        self.generator = Generator()
+
+        self.positional_encoder = PositionalEncoding(
+            embedding_dimension=em_dim,
+            dropout=dropout_p,
+            max_sequence_length= dim_model
+        )
+    
+    def forward(self, src: Tensor, tgt: Tensor):
+        pass
+
+class EncoderDecoder(nn.Module):
     def __init__(
             self,
             num_tokens: int,             
-            dim_model: int,              # defines how many dimensions the model has
-            em_dim: int,                 # defines the embedding dimension
-            num_heads: int,
-            num_encoder_layers: int,     # defines how many layers the encoder will use
-            num_decoder_layers: int,     # defines how many layers the decoder will use
-            dropout_p: float = 0.5       # dropout percentage
+            dim_model: int,                     # defines how many dimensions the model has (maximum sequence length)
+            em_dim: int,                        # defines the embedding dimension
+            num_heads: int,                     # the number of attention heads
+            dimensions_of_feedforward: int,     # dimension of the feed forward layer
+            num_encoder_layers: int,            # defines how many layers the encoder will use
+            num_decoder_layers: int,            # defines how many layers the decoder will use
+            dropout_p: float = 0.5              # dropout percentage/rate
         ) -> None:
         super().__init__()
 
         self.model_type = "Transformer"
         self.dim_model = dim_model
 
-        self.positional_encoder = PositionalEncoding(
-            d_model=dim_model,
-            dropout=dropout_p
-        )
-
-        #NOTE: might have to play around with dim_feedforward for both
-        #       the encoder and decoder
-
+        # -----------------------
+        #   ENCODER 
+        # -----------------------
         encoder_layer = TransformerEncoderLayer(
             d_model=dim_model,
             nhead=num_heads,
+            dim_feedforward=dimensions_of_feedforward,
             dropout=dropout_p
         )
+        encoder_norm = LayerNorm(dim_model)
         self.transformer_encoder = TransformerEncoder(
             encoder_layer=encoder_layer,
-            num_layers=num_encoder_layers
+            num_layers=num_encoder_layers,
+            norm=encoder_norm
         )
         self.encoder = nn.Embedding(
             num_embeddings=num_tokens,
             embedding_dim=em_dim
         )
-
+        
+        # -----------------------
+        #   DECODER
+        # -----------------------
         decoder_layer = TransformerDecoderLayer(
             d_model=dim_model,
             nhead=num_heads,
+            dim_feedforward= dimensions_of_feedforward,
             dropout=dropout_p
         )
+        decoder_norm = LayerNorm(dim_model)
         self.transformer_decoder = TransformerDecoder(
             decoder_layer=decoder_layer,
-            num_layers=num_decoder_layers
+            num_layers=num_decoder_layers,
+            norm=decoder_norm
         )
         self.decoder = nn.Embedding(
             num_embeddings=num_tokens,
             embedding_dim=em_dim
         )
     
-    # def init_weights(self) -> None:
-    #     initrange = 0.1
-    #     self.encoder.weight.data.uniform_(-initrange, initrange)
-    
-    def forward(self, src: Tensor, src_mask: Tensor):
-        src = self.encoder(src) * math.sqrt(self.dim_model)
-        src = self.positional_encoder(src)
+    def forward(self, src: Tensor, tgt: Tensor, src_mask: Tensor, tgt_mask: Tensor):
+        memory = self.encoder(src, mask=src_mask)
+        output = self.decoder(tgt, memory, tgt_mask=tgt_mask)
 
-        out = self.transformer_encoder(src, src_mask)
-        out = self.deco
+        return output
 
+class Generator(nn.Module):
+    """
+    The language model generator is a linear layer that maps the embedding dimension to the vocabulary size.
+    """
 
-class PositionalEncoding(nn.Module):
-
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+    def __init__(self, embedding_dimension: int, number_of_tokens: int):
         super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+        self.embedding_dimension = embedding_dimension
+        self.number_of_tokens = number_of_tokens
+        self.linear = nn.Linear(embedding_dimension, number_of_tokens)
 
     def forward(self, x: Tensor) -> Tensor:
         """
-        Args:
-            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+        Compute the language model head.
+
+        x dimensions are: (batch_size, sequence_length, embedding_dimension)
+        output dimensions are: (batch_size, sequence_length, number_of_tokens)
         """
-        x = x + self.pe[:x.size(0)]
+        # Compute the linear layer
+        # linear_output dimensions are: (batch_size, sequence_length, number_of_tokens)
+        linear_output = self.linear(x)
+
+        return F.softmax(linear_output, dim=-1)
+
+    
+class PositionalEncoding(nn.Module):
+    """Implement the PE function.
+    
+    Allows the model to learn about the order of the input tokens"""
+    def __init__(self, d_model: int, dropout: int, max_len: int = 5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * -(math.log(10000.0) / d_model))
+
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+        
+    def forward(self, x: Tensor):
+        x = x + Variable(self.pe[:, :x.size(1)], 
+                         requires_grad=False)
         return self.dropout(x)
+    
