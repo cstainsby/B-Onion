@@ -33,6 +33,7 @@ Attention is this context is a function that maps a query and a set of key
 import math
 import os
 import copy
+import time
 import numpy as np
 from tempfile import TemporaryDirectory
 from typing import Tuple
@@ -48,11 +49,12 @@ from torch.utils.data import dataset
 
 class LanguageModel(nn.Module):
     """A Wrapper for the transformer used by our model, 
-    also holds
-        - positional encoder 
-
+    
+    Includes all the functionality needed for intereact with the model in the app
     """
     def __init__(self,
+                
+                # hyper parameters
                 num_tokens: int,             
                 dim_model: int,                     # defines how many dimensions the model has (maximum sequence length)
                 em_dim: int,                        # defines the embedding dimension
@@ -60,11 +62,11 @@ class LanguageModel(nn.Module):
                 dimensions_of_feedforward: int,     # dimension of the feed forward layer
                 num_encoder_layers: int,            # defines how many layers the encoder will use
                 num_decoder_layers: int,            # defines how many layers the decoder will use
-                dropout_p: float = 0.5              # dropout percentage/rate) -> None:
+                dropout_p: float = 0.5,              # dropout percentage/rate) -> None:
         ) -> None:
         super().__init__()
 
-        self.encoder_decoder = EncoderDecoder(
+        self.model = EncoderDecoder(
             num_tokens=num_tokens,
             dim_model=dim_model,
             em_dim=em_dim,
@@ -83,8 +85,58 @@ class LanguageModel(nn.Module):
             max_sequence_length= dim_model
         )
     
-    def forward(self, src: Tensor, tgt: Tensor):
-        pass
+    def forward(self, src: Tensor, tgt: Tensor) -> Tensor:
+        """Forward method of full transformer 
+        
+        Copied from implementation: https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
+        with some modifications, no self.out, using Generator forward instead"""
+        # Src size must be (batch_size, src sequence length)
+        # Tgt size must be (batch_size, tgt sequence length)
+
+        # Embedding + positional encoding - Out size = (batch_size, sequence length, dim_model)
+        src = self.embedding(src) * math.sqrt(self.dim_model)
+        tgt = self.embedding(tgt) * math.sqrt(self.dim_model)
+        src = self.positional_encoder(src)
+        tgt = self.positional_encoder(tgt)
+
+        # we permute to obtain size (sequence length, batch_size, dim_model),
+        src = src.permute(1, 0, 2)
+        tgt = tgt.permute(1, 0, 2)
+
+        # Transformer blocks - Out size = (sequence length, batch_size, num_tokens)
+        transformer_out = self.transformer(src, tgt)
+        out = self.generator(transformer_out)
+
+        return out
+
+
+def subsequent_mask(size):
+    "Mask out subsequent positions."
+    attn_shape = (1, size, size)
+    subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
+    return torch.from_numpy(subsequent_mask) == 0
+
+
+class Batch:
+    "Object for holding a batch of data with mask during training."
+    def __init__(self, src, trg=None, pad=0):
+        self.src = src
+        self.src_mask = (src != pad).unsqueeze(-2)
+        if trg is not None:
+            self.trg = trg[:, :-1]
+            self.trg_y = trg[:, 1:]
+            self.trg_mask = \
+                self.make_std_mask(self.trg, pad)
+            self.ntokens = (self.trg_y != pad).data.sum()
+    
+    @staticmethod
+    def make_std_mask(tgt, pad):
+        "Create a mask to hide padding and future words."
+        tgt_mask = (tgt != pad).unsqueeze(-2)
+        tgt_mask = tgt_mask & Variable(
+            subsequent_mask(tgt.size(-1)).type_as(tgt_mask.data))
+        return tgt_mask
+
 
 class EncoderDecoder(nn.Module):
     def __init__(
