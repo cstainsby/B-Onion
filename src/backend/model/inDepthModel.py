@@ -47,24 +47,25 @@ from torch.utils.data import dataset
 
 
 
-class LanguageModel(nn.Module):
+class LanguageModel():
     """A Wrapper for the transformer used by our model, 
     
     Includes all the functionality needed for intereact with the model in the app
     """
     def __init__(self,
                 
-                # hyper parameters
-                num_tokens: int,             
-                dim_model: int,                     # defines how many dimensions the model has (maximum sequence length)
-                em_dim: int,                        # defines the embedding dimension
-                num_heads: int,                     # the number of attention heads
-                dimensions_of_feedforward: int,     # dimension of the feed forward layer
-                num_encoder_layers: int,            # defines how many layers the encoder will use
-                num_decoder_layers: int,            # defines how many layers the decoder will use
-                dropout_p: float = 0.5,              # dropout percentage/rate) -> None:
+    
         ) -> None:
-        super().__init__()
+        
+        # hyper parameters
+                # num_tokens: int,             
+                # dim_model: int,                     # defines how many dimensions the model has (maximum sequence length)
+                # em_dim: int,                        # defines the embedding dimension
+                # num_heads: int,                     # the number of attention heads
+                # dimensions_of_feedforward: int,     # dimension of the feed forward layer
+                # num_encoder_layers: int,            # defines how many layers the encoder will use
+                # num_decoder_layers: int,            # defines how many layers the decoder will use
+                # dropout_p: float = 0.5,              # dropout percentage/rate) -> None:
 
         self.model = EncoderDecoder(
             num_tokens=num_tokens,
@@ -74,10 +75,12 @@ class LanguageModel(nn.Module):
             dimensions_of_feedforward=dimensions_of_feedforward,
             num_encoder_layers=num_encoder_layers,
             num_decoder_layers=num_decoder_layers,
-            dropout_p=dropout_p
+            dropout_p=0.5
         )
         
         self.generator = Generator()
+
+        
 
         self.positional_encoder = PositionalEncoding(
             embedding_dimension=em_dim,
@@ -85,36 +88,6 @@ class LanguageModel(nn.Module):
             max_sequence_length= dim_model
         )
     
-    def forward(self, src: Tensor, tgt: Tensor) -> Tensor:
-        """Forward method of full transformer 
-        
-        Copied from implementation: https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
-        with some modifications, no self.out, using Generator forward instead"""
-        # Src size must be (batch_size, src sequence length)
-        # Tgt size must be (batch_size, tgt sequence length)
-
-        # Embedding + positional encoding - Out size = (batch_size, sequence length, dim_model)
-        src = self.embedding(src) * math.sqrt(self.dim_model)
-        tgt = self.embedding(tgt) * math.sqrt(self.dim_model)
-        src = self.positional_encoder(src)
-        tgt = self.positional_encoder(tgt)
-
-        # we permute to obtain size (sequence length, batch_size, dim_model),
-        src = src.permute(1, 0, 2)
-        tgt = tgt.permute(1, 0, 2)
-
-        # Transformer blocks - Out size = (sequence length, batch_size, num_tokens)
-        transformer_out = self.transformer(src, tgt)
-        out = self.generator(transformer_out)
-
-        return out
-
-
-def subsequent_mask(size):
-    "Mask out subsequent positions."
-    attn_shape = (1, size, size)
-    subsequent_mask = np.triu(np.ones(attn_shape), k=1).astype('uint8')
-    return torch.from_numpy(subsequent_mask) == 0
 
 
 

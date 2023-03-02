@@ -5,10 +5,10 @@
 
 import torch
 import torch.nn as nn
-import torch.optim as optim
 
 import math
 import numpy as np
+
 
 
 
@@ -32,6 +32,10 @@ class Transformer(nn.Module):
         # INFO
         self.model_type = "Transformer"
         self.dim_model = dim_model
+
+        # specific to my model, these will represent the 
+        self.start_token = -1
+        self.exit_token = -2
 
         # LAYERS
         self.positional_encoder = PositionalEncoding(
