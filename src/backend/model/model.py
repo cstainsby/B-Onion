@@ -4,7 +4,8 @@
 # https://towardsdatascience.com/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1 
 
 import torch
-import torch.nn as nn
+from torch import nn
+from torch import Tensor
 
 import math
 import numpy as np
@@ -32,10 +33,6 @@ class Transformer(nn.Module):
         # INFO
         self.model_type = "Transformer"
         self.dim_model = dim_model
-
-        # specific to my model, these will represent the 
-        self.start_token = -1
-        self.exit_token = -2
 
         # LAYERS
         self.positional_encoder = PositionalEncoding(
@@ -71,6 +68,12 @@ class Transformer(nn.Module):
         out = self.out(transformer_out)
         
         return out
+    
+    def init_weights(self) -> None:
+        initrange = 0.1
+        self.encoder.weight.data.uniform_(-initrange, initrange)
+        self.decoder.bias.data.zero_()
+        self.decoder.weight.data.uniform_(-initrange, initrange)
       
     def get_tgt_mask(self, size) -> torch.tensor:
         # Generates a squeare matrix where the each row allows one word more to be seen
@@ -88,35 +91,28 @@ class Transformer(nn.Module):
         
         return mask
     
-    def create_pad_mask(self, matrix: torch.tensor, pad_token: int) -> torch.tensor:
-        # If matrix = [1,2,3,0,0,0] where pad_token=0, the result mask is
-        # [False, False, False, True, True, True]
-        return (matrix == pad_token)
+    # def create_pad_mask(self, matrix: torch.tensor, pad_token: int) -> torch.tensor:
+    #     # If matrix = [1,2,3,0,0,0] where pad_token=0, the result mask is
+    #     # [False, False, False, True, True, True]
+    #     return (matrix == pad_token)
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, dim_model, dropout_p, max_len):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super().__init__()
-        # Modified version from: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-        # max_len determines how far the position can have an effect on a token (window)
-        
-        # Info
-        self.dropout = nn.Dropout(dropout_p)
-        
-        # Encoding - From formula
-        pos_encoding = torch.zeros(max_len, dim_model)
-        positions_list = torch.arange(0, max_len, dtype=torch.float).view(-1, 1) # 0, 1, 2, 3, 4, 5
-        division_term = torch.exp(torch.arange(0, dim_model, 2).float() * (-math.log(10000.0)) / dim_model) # 1000^(2i/dim_model)
-        
-        # PE(pos, 2i) = sin(pos/1000^(2i/dim_model))
-        pos_encoding[:, 0::2] = torch.sin(positions_list * division_term)
-        
-        # PE(pos, 2i + 1) = cos(pos/1000^(2i/dim_model))
-        pos_encoding[:, 1::2] = torch.cos(positions_list * division_term)
-        
-        # Saving buffer (same as parameter without gradients needed)
-        pos_encoding = pos_encoding.unsqueeze(0).transpose(0, 1)
-        self.register_buffer("pos_encoding",pos_encoding)
-        
-    def forward(self, token_embedding: torch.tensor) -> torch.tensor:
-        # Residual connection + pos encoding
-        return self.dropout(token_embedding + self.pos_encoding[:token_embedding.size(0), :])
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Args:
+            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)

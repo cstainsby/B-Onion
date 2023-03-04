@@ -41,7 +41,7 @@ def predict(model, input_sequence, max_length=15, SOS_token=2, EOS_token=3):
 
     return y_input.view(-1).tolist()
 
-def train_loop(model: nn.Module, opt, loss_fn, dataloader):
+def train_loop(model: nn.Module, opt, loss_fn, dataloader, ):
     """
     Method from "A detailed guide to Pytorch's nn.Transformer() module.", by
     Daniel Melchor: https://medium.com/@danielmelchor/a-detailed-guide-to-pytorchs-nn-transformer-module-c80afbc9ffb1
@@ -62,6 +62,16 @@ def train_loop(model: nn.Module, opt, loss_fn, dataloader):
         # Get mask to mask out the next words
         sequence_length = y_input.size(1)
         tgt_mask = model.get_tgt_mask(sequence_length).to(device)
+
+        # print("X:", X)
+        # print("y_input:", y_input)
+        # print("tgt mask:", tgt_mask)
+
+        # print("len X", len(X))
+        # print("len y in", len(y_input))
+        # print("len tgt mask", len(tgt_mask))
+
+        # # NOTE: 
 
         # Standard training except we pass in y_input and tgt_mask
         pred = model(X, y_input, tgt_mask)
@@ -139,7 +149,7 @@ def fit(model, opt, loss_fn, train_dataloader, val_dataloader, epochs):
         print(f"Training loss: {train_loss:.4f}")
         print(f"Validation loss: {validation_loss:.4f}")
         elapsed = time.time() - start
-        print("Epoch Step: {} Tokens per Sec: {}".format(epoch+1, num_tokens / elapsed))
+        print("Epoch Step: {} Tokens per Sec: {}".format(epoch, num_tokens / elapsed))
         start = time.time()
         print()
         
