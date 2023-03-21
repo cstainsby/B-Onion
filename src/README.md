@@ -1,4 +1,4 @@
-# Backend Folder 
+# SRC Folder 
 This folder will be responsible for housing anything related to the actual model and how it is interacted with. This includes the following:
 1. the model itself
 2. the data the model will use 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+  head {text-align: center;}
+</style>
+<head>
+    <title>Transformer Demo</title>
+</head>
+<body>
+    <h1>Transformer Demo</h1>
+    <input type="text" id="prompt" name="prompt" placeholder="Enter prompt here">
+    <button id="start-button" onclick="callEndpoint()">Start</button>
+    <button id="clear-button" onclick="callEndpoint()">Clear</button>
+    <p id="transformer-response">Click Button for transformer text generation</p>
+    <script>
+      let startButton = document.getElementById("start-button");
+      let clearButton = document.getElementById("clear-button");
+      let res_p = document.getElementById("transformer-response")
+      let promptBox = document.getElementById("prompt")
+
+      startButton.onclick = () => {
+        res_p.textContent = "Waiting for text response..."
+
+        fetch('/trans-end', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ "prompt": promptBox.value }),
+        })
+          .then(response => response.text())
+          .then(msg => {
+            res_p.textContent = msg;
+            console.log(msg);
+          });
+      }
+
+      clearButton.onclick = () => {
+        res_p.textContent = "Click Button for transformer text generation"
+      }
+
+    </script>
+</body>
+</html>
