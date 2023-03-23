@@ -2,21 +2,21 @@ import json
 import zipfile 
 import torch
 from flask import Flask, render_template, request
-# import transformer_model
+from transformer_model import TransformerModel, generate_text
 
 app = Flask(__name__)
 
 
 # Add model
-# model = transformer_model.TransformerModel(
-#   embedding_dim = 300,
-#   hidden_dim = 300,
-#   num_layers = 2,
-#   num_heads = 4,
-#   vocab_len = 400004,
-#   max_len = 100,
-#   dropout_p = 0.2
-# )
+model = TransformerModel(
+  embedding_dim = 300,
+  hidden_dim = 300,
+  num_layers = 2,
+  num_heads = 4,
+  vocab_len = 400004,
+  max_len = 100,
+  dropout_p = 0.2
+)
 
 
 # with zipfile.ZipFile('vocab_mapping_dict.zip', 'r') as f:

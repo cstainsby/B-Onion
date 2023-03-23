@@ -12,7 +12,15 @@ class TransformerModel(nn.Module):
         - Decoder 
     
     """
-    def __init__(self, embedding_dim, hidden_dim, num_layers, num_heads, vocab_len, max_len, dropout_p, embedding_matrix = None, num_embeddings=None):
+    def __init__(self, 
+                 embedding_dim, 
+                 hidden_dim, 
+                 num_layers, 
+                 num_heads, 
+                 max_len, 
+                 dropout_p = 0.2, 
+                 embedding_matrix = None, 
+                 num_embeddings=None):
         super().__init__()
         self.embedding_dim = embedding_dim
         self.hidden_dim = hidden_dim
@@ -28,39 +36,22 @@ class TransformerModel(nn.Module):
               num_embeddings=num_embeddings,
               embedding_dim=embedding_dim
           ).to(torch.float)
-        print("encoder embedding shape:", self.encoder_embedding.weight.shape)
-
-        # for the decoder input tokens
-        self.decoder_embedding = nn.Embedding(
-            num_embeddings=vocab_len,
-            embedding_dim=embedding_dim
-        ).to(torch.float)
         
         # encoder definition
         self.pos_encoder = PositionalEncoding(embedding_dim, max_len, dropout_p)
         encoder_layers = TransformerEncoderLayer(hidden_dim, num_heads, hidden_dim * 4, dropout_p)
         self.transformer_encoder = TransformerEncoder(encoder_layers, num_layers)
-        
-        # decoder definition
-        self.pos_decoder = PositionalEncoding(embedding_dim, max_len, dropout_p)
-        decoder_layers = TransformerDecoderLayer(hidden_dim, num_heads, hidden_dim * 4, dropout_p)
-        self.transformer_decoder = TransformerDecoder(decoder_layers, num_layers)
-        
-        # used to project decoder output to vocab size
-        self.fc_out = nn.Linear(hidden_dim, vocab_len)
+
     
-    def forward(self, src, tgt):
-        src = self.embedding(src) * math.sqrt(self.embedding_dim)
-        src = self.pos_encoder(src)
+    def forward(self, src):
+        out = self.encoder_embedding(src) * math.sqrt(self.embedding_dim)
+        out = self.pos_encoder(out)
+
         # encoder output saved so that it can be used in decoder
-        enc_output = self.transformer_encoder(src)
+        out = self.transformer_encoder(out)
 
-        tgt = self.decoder_embedding(tgt) * math.sqrt(self.embedding_dim)
-        tgt = self.pos_decoder(tgt)
-        dec_output = self.transformer_decoder(tgt, enc_output)
+        return out
 
-        output = self.fc_out(dec_output)
-        return output
 
 
 class PositionalEncoding(nn.Module):
