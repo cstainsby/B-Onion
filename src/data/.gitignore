@@ -1,0 +1,7 @@
+# ignore all data/ files except the python files and .gitignore
+*
+
+!.gitignore
+!__init__.py
+!article_data.py 
+!data.py 

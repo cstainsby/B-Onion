@@ -1,6 +1,3 @@
 creds/docker_creds.csv
 
 notebooks/.vector_cache
-
-# ignore all data
-data/*
