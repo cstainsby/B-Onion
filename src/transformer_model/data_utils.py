@@ -33,5 +33,5 @@ def encode_token(vocab: Vocab, decoded_token: str):
 def decode_token(vocab: Vocab, encoded_token: int):
   return vocab.get_itos()[encoded_token]
 
-def add_token_to_vocab():
-  pass
+# def add_token_to_vocab():
+#   pass

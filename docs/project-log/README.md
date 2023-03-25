@@ -25,3 +25,11 @@ Important links to articles I've been using
 
 
 I've also been working on making it possible for me to train my model remotely through the Gonzaga provided server. This has included setting up a way to save my trained model state with pytorch using their [built in functionality](https://pytorch.org/tutorials/beginner/saving_loading_models.html). Also I've been looking into **screen** as a way to ssh into their network to use their compute resources, [here is a link](https://linuxize.com/post/how-to-use-linux-screen/) to use it at a basic level.
+
+# 3/25 
+
+Interesting video talking about Stanford's Alpaca. This language model, as they describe, behaves similarly to Open-AI's chaptGPT while being small and easy to reproduce.
+
+[Link](https://www.youtube.com/watch?v=xslW5sQOkC8&list=LL&index=1) to video.
+
+It might be worth looking into some way to set up my project similar to thiers in order to get better performance out of my model. With their setup I can use chatGPT to train my model rather than create my own RL model.

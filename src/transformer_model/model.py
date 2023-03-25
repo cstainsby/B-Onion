@@ -9,8 +9,7 @@ class TransformerModel(nn.Module):
 
     Includes both an 
         - Encoder
-        - Decoder 
-    
+
     """
     def __init__(self, 
                  embedding_dim, 

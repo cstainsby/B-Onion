@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch import optim
-
 import torch.nn.functional as F
 from torchtext.vocab import Vocab
 
@@ -39,51 +38,70 @@ def train_model(model: TransformerModel, optimizer, criterion, train_loader, dev
     return total_loss / len(train_loader)
 
 
+# def train(model, train_loader, val_loader, epochs, lr):
+#     optimizer = optim.Adam(model.parameters(), lr=lr)
+#     criterion = nn.CrossEntropyLoss()
 
-# def generate_text(model: TransformerModel, vocab: Vocab, start_seq: list, max_length: int=100, temperature: float=1.0):
-#     model.eval()
-#     gen_seq = start_seq
+#     for epoch in range(epochs):
+#         # Training
+#         model.train()
+#         train_loss = 0
+#         for batch in train_loader:
+#             optimizer.zero_grad()
+#             src, target = batch
+#             output = model(src)
+#             loss = criterion(output.view(-1, output.size(-1)), target.view(-1))
+#             loss.backward()
+#             optimizer.step()
+#             train_loss += loss.item()
 
-#     with torch.no_grad():
-#         # Check input sequence length
-#         if len(gen_seq) > model.max_len:
-#             raise ValueError(f"Input sequence must be at least {model.max_len} words long")
+#         train_loss /= len(train_loader)
 
-#         for _ in range(max_length):
-#             in_text_token_ids = [encode_token(vocab, word) for word in gen_seq]
-#             sequence_length = len(in_text_token_ids)
+#         # Evaluation
+#         model.eval()
+#         val_loss = 0
+#         with torch.no_grad():
+#             for batch in val_loader:
+#                 src, target = batch
+#                 output = model(src)
+#                 loss = criterion(output.view(-1, output.size(-1)), target.view(-1))
+#                 val_loss += loss.item()
 
-#             print("intexttoken_ids", in_text_token_ids)
+#         val_loss /= len(val_loader)
 
-#             curr_seq = torch.tensor(in_text_token_ids).unsqueeze(0)
+#         print(f'Epoch: {epoch+1}/{epochs}, Train Loss: {train_loss:.3f}, Val Loss: {val_loss:.3f}')
 
-#             logits = model(curr_seq)
-#             logits = logits[0, -1, :] / temperature
-#             prob = F.softmax(logits, dim=-1)
-#             next_token = torch.multinomial(prob, num_samples=1)
-#             curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
-#             if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
-#                 break
-#             else:
-#                 generated_text = decode_token(vocab, next_token)
+#     print('Training finished!')
 
-#                 yield generated_text
+
+
 
 def generate_text(model: TransformerModel, vocab: Vocab, start_seq: list, max_length: int=100, temperature: float=1.0):
     model.eval()
+    gen_seq = start_seq
+
     with torch.no_grad():
-        seq_len = len(start_seq)
-        cur_seq = start_seq
-        for _ in range(max_length - seq_len):
-            cur_seq_tensor = torch.tensor([encode_token(vocab, word) for word in cur_seq]).unsqueeze(0)
-            output = model(cur_seq_tensor)
-            next_token_logits = output[0, -1, :] / temperature
-            next_token_probs = F.softmax(next_token_logits, dim=-1)
-            next_token_idx = torch.multinomial(next_token_probs, 1).item()
-            if next_token_idx == encode_token(vocab, "<eos>") or cur_seq >= max_length:
+        # Check input sequence length
+        if len(gen_seq) > model.max_len:
+            raise ValueError(f"Input sequence must be at least {model.max_len} words long")
+
+        for _ in range(max_length):
+            in_text_token_ids = [encode_token(vocab, word) for word in gen_seq]
+            sequence_length = len(in_text_token_ids)
+
+            curr_seq = torch.tensor(in_text_token_ids).unsqueeze(0)
+
+            logits = model(curr_seq)
+            logits = logits[0, -1, :] / temperature
+            prob = F.softmax(logits, dim=-1)
+            next_token = torch.multinomial(prob, num_samples=1)
+            curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
+            if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
                 break
-            cur_seq.append(vocab.itos[next_token_idx])
-    return cur_seq
+            else:
+                generated_text = decode_token(vocab, next_token)
+
+                yield generated_text
 
 # --------------------------------------------------------------------------------------------------
 #   Model State Interaction Functions
