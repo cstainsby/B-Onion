@@ -1,52 +1,78 @@
+import os
 import json 
-import zipfile 
+import queue
 import torch
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 from transformer_model import TransformerModel, generate_text
 
 app = Flask(__name__)
 
+# app filepath
+app_path = os.path.dirname(os.path.realpath(__file__))
 
-# Add model
-model = TransformerModel(
-  embedding_dim = 300,
-  hidden_dim = 300,
-  num_layers = 2,
-  num_heads = 4,
-  vocab_len = 400004,
-  max_len = 100,
-  dropout_p = 0.2
-)
+# import vocab
+SAVE_PATH = app_path + "/transformer_model/vocab_save/" + "embeddings_vocab.pt"
+vocab_obj = torch.load(SAVE_PATH)
+
+# import model
+SAVE_PATH = app_path + "/transformer_model/model_save/" + "glove_emb_model.pt"
+model = torch.load(SAVE_PATH)
 
 
-# with zipfile.ZipFile('vocab_mapping_dict.zip', 'r') as f:
-#   f.extractall('extracted_files')
+# generator queue definition 
+# https://maxhalford.github.io/blog/flask-sse-no-deps/
+class generatorPubSub():
 
-# with open("extracted_files/data.json", "r") as f:
-#   vocab_mappings = json.load(f)
+    def __init__(self):
+        self.listeners = []
 
-# reload state into model
-# model.load_state_dict(torch.load("model_save/GloVeDemo.pt"))
+    def listen(self):
+        q = queue.Queue(maxsize=5)
+        self.listeners.append(q)
+        return q
+
+    def announce(self, msg):
+        for i in reversed(range(len(self.listeners))):
+            try:
+                self.listeners[i].put_nowait(msg)
+            except queue.Full:
+                del self.listeners[i]
+
+
+def format_sse(data: str, event=None) -> str:
+    msg = f'data: {data}\n\n'
+    if event is not None:
+        msg = f'event: {event}\n{msg}'
+    return msg
+
+
 
 
 @app.route("/", methods=["GET"])
 def hello_world():
     return render_template("base.html")
 
-@app.route('/trans-end', methods=["POST"])
-def my_endpoint():
+@app.route('/trans-end-stream', methods=["POST"])
+def trans_stream_end():
     print("data:",request.get_json())
     prompt_text = str(request.get_json()["prompt"]).lower().split(" ")
-    
-    # Do something here
-    if prompt_text:
-      start_seq = prompt_text
-    else:
-      start_seq = ["the", "quick", "brown"]
 
-    res = start_seq
-    res = " ".join(res)
-    return res
+    def stream_trans_text(prompt_text):
+
+        if prompt_text:
+            start_seq = prompt_text
+
+            for word in generate_text(
+                model=model,
+                vocab=vocab_obj,
+                start_seq=start_seq,
+                max_length=10):
+                print("generated word", word)
+                yield 'data: {}\n\n'.format(word) 
+        else:
+            yield "Error: unprocessable input given"
+
+    return Response(stream_trans_text(prompt_text), mimetype="text/event-stream")
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)

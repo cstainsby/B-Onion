@@ -1,4 +1,6 @@
+from spacy.tokenizer import Tokenizer 
 import torch
+from torchtext.data import get_tokenizer
 from torchtext.vocab import vocab, Vocab
 
 from collections import Counter
@@ -21,6 +23,15 @@ def build_vocab(tokenizer, filepath=None, word_list:list=None):
       counter.update(tokenizer(word))
     
   return vocab(counter, specials=["<pad>", "<unk>", "<sos>", "<eos>"])
+
+
+def tokenize_raw_data(data: str, vocab: Vocab):
+  tokenizer = get_tokenizer("spacy")
+  tokenized_data = tokenizer(data)
+
+  # validate tokens with vocab, if a token doesn't exist within the vocab then set it to <unk>
+  vocab_passed_tokens = [token if token in vocab.get_itos() else "<unk>" for token in tokenized_data]
+  return vocab_passed_tokens
 
 
 # --------------------------------------------------------------------------------------------------

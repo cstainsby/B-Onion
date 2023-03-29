@@ -2,12 +2,15 @@
 <html lang="en">
 <style>
   head {text-align: center;}
+  body {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
 </style>
 <head>
-    <title>Transformer Demo</title>
+    <title>Bonion</title>
 </head>
 <body>
-    <h1>Transformer Demo</h1>
+    <h1>Bonion</h1>
     <input type="text" id="prompt" name="prompt" placeholder="Enter prompt here">
     <button id="start-button" onclick="callEndpoint()">Start</button>
     <button id="clear-button" onclick="callEndpoint()">Clear</button>
@@ -21,21 +24,35 @@
       startButton.onclick = () => {
         res_p.textContent = "Waiting for text response..."
 
-        fetch('/trans-end', {
+        // open event source and wait for a response from the transformer
+        const eventSource = new EventSource("/trans-end-stream");
+
+        // post the initial sequence so that the transformer can begin generating
+        fetch('/trans-end-stream', {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ "prompt": promptBox.value }),
         })
-          .then(response => response.text())
-          .then(msg => {
-            res_p.textContent = msg;
-            console.log(msg);
-          });
+          // .then(response => response.text())
+          // .then(msg => {
+          //   res_p.textContent = msg;
+          //   console.log(msg);
+          // });
+
+        eventSource.onmessage = function(event) {
+          const word = event.data;
+          res_p.textContent += word; // Append the generated word to the output
+          console.log(word);
+        }
+
+        // close the connection once the response has been recieved
+        // eventSource.close()
       }
 
       clearButton.onclick = () => {
+        promptBox.textContent = ""
         res_p.textContent = "Click Button for transformer text generation"
       }
 

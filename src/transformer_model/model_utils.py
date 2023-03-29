@@ -9,33 +9,40 @@ from .model import TransformerModel
 from .data_utils import encode_token, decode_token, build_vocab
 
 
-def train_model(model: TransformerModel, optimizer, criterion, train_loader, device):
-    model.train()  # Set the model to training mode
-    
+def train_model(model: TransformerModel, vocab: Vocab, optimizer, criterion, train_data, device):
+    model.train()
     total_loss = 0
-    for i, (src, tgt) in enumerate(train_loader):
-        src = src.to(device)
-        tgt = tgt.to(device)
-        
+    num_tokens = 0
+    for i, tokenized_strings in enumerate(train_data):
+
+        # convert tokens to encodings
+        encoded_tokens = [encode_token(vocab, token) for token in tokenized_strings]
+
+        # Convert sentence to tensor and move to device
+        sentence_tensor = torch.tensor(encoded_tokens, dtype=torch.long).unsqueeze(0).to(device)
+        # Clear gradients
         optimizer.zero_grad()
-        
-        output = model(src, tgt[:, :-1])  # Predict up to the second last token
-        
-        # Flatten the output and target tensors to be 2D
-        output = output.view(-1, output.shape[-1])
-        tgt = tgt[:, 1:].contiguous().view(-1)
-        
-        loss = criterion(output, tgt)
+        # Forward pass
+        output = model(sentence_tensor)
+        # Flatten output and target for loss calculation
+        output = output.view(-1, output.size(-1))
+        target = sentence_tensor.view(-1)
+        # Calculate loss
+        loss = criterion(output, target)
+        # Backward pass
         loss.backward()
-        
+        # Clip gradients to prevent exploding gradients
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+        # Update parameters
         optimizer.step()
-        
+        # Update loss and token count
         total_loss += loss.item()
-        
-        if (i + 1) % 100 == 0:
-            print(f"Batch {i + 1}, loss={loss.item()}")
-    
-    return total_loss / len(train_loader)
+        num_tokens += len(encoded_tokens)
+        # Print progress
+        if i % 100 == 0:
+            print(f"Iteration {i}: Loss = {total_loss/num_tokens:.4f}")
+    # Return average loss over all tokens
+    return total_loss / num_tokens
 
 
 # def train(model, train_loader, val_loader, epochs, lr):
@@ -100,7 +107,6 @@ def generate_text(model: TransformerModel, vocab: Vocab, start_seq: list, max_le
                 break
             else:
                 generated_text = decode_token(vocab, next_token)
-
                 yield generated_text
 
 # --------------------------------------------------------------------------------------------------
