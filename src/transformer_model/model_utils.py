@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,17 +7,26 @@ import torch.nn.functional as F
 from torchtext.vocab import Vocab
 
 from .model import TransformerModel
-from .data_utils import encode_token, decode_token, build_vocab
+from .data_utils import encode_token, decode_token, tokenize_raw_data
 
 
-def train_model(model: TransformerModel, vocab: Vocab, optimizer, criterion, train_data, device):
+def train_batch(model: TransformerModel, vocab: Vocab, optimizer, criterion, batch, device):
     model.train()
     total_loss = 0
     num_tokens = 0
-    for i, tokenized_strings in enumerate(train_data):
+
+    start_time = time.time()
+
+    for i, raw_batch_strs in enumerate(batch):
+        curr_time = time.time()
+
+        if i > 9 and i % 10 == 0:
+            print("i:", i, "time to train 10 instances:", curr_time - start_time)
+
+        full_tokenized_sequence = tokenize_raw_data(data=raw_batch_strs, vocab=vocab)
 
         # convert tokens to encodings
-        encoded_tokens = [encode_token(vocab, token) for token in tokenized_strings]
+        encoded_tokens = [encode_token(vocab, token) for token in full_tokenized_sequence]
 
         # Convert sentence to tensor and move to device
         sentence_tensor = torch.tensor(encoded_tokens, dtype=torch.long).unsqueeze(0).to(device)
@@ -41,49 +51,18 @@ def train_model(model: TransformerModel, vocab: Vocab, optimizer, criterion, tra
         # Print progress
         if i % 100 == 0:
             print(f"Iteration {i}: Loss = {total_loss/num_tokens:.4f}")
+
+
+    print("Total time:", time.time() - start_time)
+
     # Return average loss over all tokens
     return total_loss / num_tokens
 
 
-# def train(model, train_loader, val_loader, epochs, lr):
-#     optimizer = optim.Adam(model.parameters(), lr=lr)
-#     criterion = nn.CrossEntropyLoss()
+def generate_text(model: TransformerModel, vocab: Vocab, start_str: str, max_length: int=100, temperature: float=1.0):
 
-#     for epoch in range(epochs):
-#         # Training
-#         model.train()
-#         train_loss = 0
-#         for batch in train_loader:
-#             optimizer.zero_grad()
-#             src, target = batch
-#             output = model(src)
-#             loss = criterion(output.view(-1, output.size(-1)), target.view(-1))
-#             loss.backward()
-#             optimizer.step()
-#             train_loss += loss.item()
+    start_seq = tokenize_raw_data(data=start_str, vocab=vocab)
 
-#         train_loss /= len(train_loader)
-
-#         # Evaluation
-#         model.eval()
-#         val_loss = 0
-#         with torch.no_grad():
-#             for batch in val_loader:
-#                 src, target = batch
-#                 output = model(src)
-#                 loss = criterion(output.view(-1, output.size(-1)), target.view(-1))
-#                 val_loss += loss.item()
-
-#         val_loss /= len(val_loader)
-
-#         print(f'Epoch: {epoch+1}/{epochs}, Train Loss: {train_loss:.3f}, Val Loss: {val_loss:.3f}')
-
-#     print('Training finished!')
-
-
-
-
-def generate_text(model: TransformerModel, vocab: Vocab, start_seq: list, max_length: int=100, temperature: float=1.0):
     model.eval()
     gen_seq = start_seq
 
@@ -104,7 +83,7 @@ def generate_text(model: TransformerModel, vocab: Vocab, start_seq: list, max_le
             next_token = torch.multinomial(prob, num_samples=1)
             curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
             if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
-                break
+                return
             else:
                 generated_text = decode_token(vocab, next_token)
                 yield generated_text
