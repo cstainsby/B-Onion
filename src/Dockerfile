@@ -2,11 +2,12 @@ FROM python:3.8-slim-buster
 
 # create app folder and copy in code 
 WORKDIR /app
-COPY . /app 
 
 # install requirements from requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt 
+COPY ./requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt 
 
+COPY . /app 
 
 EXPOSE 8000
 

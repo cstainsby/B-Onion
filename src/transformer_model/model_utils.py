@@ -60,33 +60,82 @@ def train_batch(model: TransformerModel, vocab: Vocab, optimizer, criterion, bat
 
 
 def generate_text(model: TransformerModel, vocab: Vocab, start_str: str, max_length: int=100, temperature: float=1.0):
+    """
+    Generates text from a trained transformer model and a starting string.
 
-    start_seq = tokenize_raw_data(data=start_str, vocab=vocab)
+    Args:
+        model (nn.Module): trained transformer model
+        vocab (Vocab): vocabulary object
+        start_str (str): starting string for text generation
+        max_length (int): maximum number of words to generate
+        temperature (float): softmax temperature value for sampling. Default=1.0.
 
-    model.eval()
-    gen_seq = start_seq
+    Yields:
+        str: generated words
+    """
 
     with torch.no_grad():
-        # Check input sequence length
-        if len(gen_seq) > model.max_len:
-            raise ValueError(f"Input sequence must be at least {model.max_len} words long")
+
+        # tokenize the incoming string data 
+        # remove last string which is an <eos> created by the tokenize function
+        start_seq = tokenize_raw_data(data=start_str, vocab=vocab)[:-1]
+        start_seq_tokens = [encode_token(vocab, word) for word in start_seq]
+        model_input_tensor = torch.tensor(start_seq_tokens, dtype=torch.long).unsqueeze(0)
 
         for _ in range(max_length):
-            in_text_token_ids = [encode_token(vocab, word) for word in gen_seq]
-            sequence_length = len(in_text_token_ids)
+            out = model(model_input_tensor, memory=None)
 
-            curr_seq = torch.tensor(in_text_token_ids).unsqueeze(0)
+            # Get last predicted token and apply temperature
+            logits = out[:, -1, :] / temperature
+            probs = torch.softmax(logits, dim=-1).squeeze()
+            generated_token = torch.multinomial(probs, num_samples=1).item()
 
-            logits = model(curr_seq)
-            logits = logits[0, -1, :] / temperature
-            prob = F.softmax(logits, dim=-1)
-            next_token = torch.multinomial(prob, num_samples=1)
-            curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
-            if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
+            # Add new token to input sequence
+            model_input_tensor = torch.cat([model_input_tensor, torch.tensor([[generated_token]], dtype=torch.long)], dim=-1)
+
+            # check if <eos> is hit
+            #       if so exit function
+            #       else yield the next token
+            if generated_token == encode_token(vocab, "<eos>"):
                 return
             else:
-                generated_text = decode_token(vocab, next_token)
+                generated_text = decode_token(vocab, generated_token)
                 yield generated_text
+
+        # Check input sequence length
+        # if len(gen_seq) > model.max_seq_len:
+        #     raise ValueError(f"Input sequence must be at least {model.max_seq_len} words long")
+
+        # # until an <eos> string is hit or the max number of words is hit, keep predicting the next word and yield it
+        # while len(gen_seq) < max_length:
+        #     print("gen_seq:", gen_seq)
+        #     in_text_token_ids = [encode_token(vocab, word) for word in gen_seq]
+        #     sequence_length = len(in_text_token_ids)
+
+        #     curr_seq = torch.tensor([in_text_token_ids], dtype=torch.long)
+
+        #     print("curr_seq", curr_seq.shape)
+        #     print("type of curr_seq:", type(curr_seq))
+        #     logits = model(curr_seq)
+
+        #     # Apply temperature and generate word index
+        #     logits = logits[0, -1, :] / temperature
+        #     probs = F.softmax(logits, dim=-1)
+        #     next_token = torch.multinomial(probs, num_samples=1).item()
+        #     # curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
+
+        #     # check if <eos> is hit
+        #     #       if so exit function
+        #     #       else yield the next token
+        #     if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
+        #         return
+        #     else:
+        #         generated_text = decode_token(vocab, next_token)
+        #         yield generated_text
+
+
+
+
 
 # --------------------------------------------------------------------------------------------------
 #   Model State Interaction Functions

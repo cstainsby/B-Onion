@@ -5,8 +5,34 @@ from torch.nn import TransformerDecoder, TransformerDecoderLayer
 
 
 class TransformerModel(nn.Module):
-    def __init__(self, vocab_size, d_model, nhead, num_layers, max_seq_len, dropout=0.1):
+    def __init__(self, 
+                 vocab_size, 
+                 d_model, 
+                 nhead, 
+                 num_layers,
+                 max_seq_len,
+                 dropout=0.1,
+                 embedding_matrix = None, 
+                 num_embeddings = None):
         super().__init__()
+
+        self.vocab_size = vocab_size
+        self.d_model = d_model
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.max_seq_len = max_seq_len
+        self.dropout = dropout
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        # allow loading in pretrained embeddings 
+        # this will be useful for using glove pretrained embeddings
+        if embedding_matrix is not None:
+            self.embedding = nn.Embedding.from_pretrained(embedding_matrix)
+        else:
+            self.embedding = nn.Embedding(
+                num_embeddings=num_embeddings,
+                embedding_dim=d_model
+            )
 
         self.embedding = nn.Embedding(vocab_size, d_model)
         self.pos_encoding = PositionalEncoding(d_model, max_seq_len, dropout)
@@ -23,68 +49,19 @@ class TransformerModel(nn.Module):
         tgt = self.pos_encoding(tgt)
         tgt = self.dropout(tgt)
 
-        if memory is None:
-            tgt_mask = nn.Transformer.generate_square_subsequent_mask(self, tgt.size(0)).to(tgt.device)
-            output = self.transformer_decoder(tgt, tgt_mask=tgt_mask)
-        else:
-            tgt = tgt.permute(1, 0, 2) # Convert (batch_size, seq_len, emb_dim) to (seq_len, batch_size, emb_dim)
-            memory = memory.permute(1, 0, 2) # Convert (batch_size, seq_len, emb_dim) to (seq_len, batch_size, emb_dim)
-            tgt_mask = nn.Transformer.generate_square_subsequent_mask(self, tgt.size(0)).to(tgt.device)
-            memory_mask = nn.Transformer.generate_square_subsequent_mask(self, memory.size(0)).to(tgt.device)
-            output = self.transformer_decoder(tgt, memory, tgt_mask=tgt_mask, memory_mask=memory_mask)
-            output = output.permute(1, 0, 2) # Convert (seq_len, batch_size, emb_dim) to (batch_size, seq_len, emb_dim)
+        # print("Target size:", tgt.size(0))
+        # print("target in forward:", tgt)
+        # tgt_mask = nn.Transformer.generate_square_subsequent_mask(self, tgt.size(0)).to(tgt.device)
 
-        output = self.out(output)
-        output = self.softmax(output)
+        batch_size = tgt.size(1)
+        mock_memory = torch.zeros((self.num_layers, batch_size, self.d_model))
 
-        return output
+        out = self.transformer_decoder(tgt, memory=mock_memory) # tgt_mask=tgt_mask
 
-# class TransformerModel(nn.Module):
-#     """The defined structure for the text generating transformer
-#         Uses pytorch 
+        out = self.out(out)
+        out = self.softmax(out)
 
-#     Includes both an 
-#         - Encoder
-
-#     """
-#     def __init__(self, 
-#                  embedding_dim, 
-#                  hidden_dim, 
-#                  num_layers, 
-#                  num_heads, 
-#                  max_len, 
-#                  vocab_size,
-#                  dropout_p = 0.2, 
-#                  embedding_matrix = None, 
-#                  num_embeddings=None):
-#         super().__init__()
-#         self.embedding_dim = embedding_dim
-#         self.hidden_dim = hidden_dim
-#         self.num_layers = num_layers
-#         self.num_heads = num_heads
-#         self.max_len = max_len
-#         self.vocab_size = vocab_size
-#         self.dropout_p = dropout_p
-        
-#         if embedding_matrix is not None:
-#             self.embedding = nn.Embedding.from_pretrained(embedding_matrix)
-#         else:
-#             self.embedding = nn.Embedding(
-#                 num_embeddings=num_embeddings,
-#                 embedding_dim=embedding_dim
-#             )
-        
-#         self.pos_encoder = PositionalEncoding(embedding_dim, max_len, dropout_p)
-#         decoder_layer = nn.TransformerDecoderLayer(hidden_dim, num_heads, hidden_dim * 4, dropout_p)
-#         self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers)
-
-#     def forward(self, input_seq):
-#         src = self.embedding(input_seq) * math.sqrt(self.embedding_dim)
-#         src = self.pos_encoder(src)
-
-#         output = self.transformer_decoder(src)
-
-#         return output
+        return out
 
 
 class PositionalEncoding(nn.Module):
