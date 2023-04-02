@@ -5,4 +5,7 @@ flask
 flask_restful
 flask-cors 
 h5py
-pytorch
+torch
+torchtext
+ipykernel
+spacy

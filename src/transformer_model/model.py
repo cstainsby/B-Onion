@@ -54,9 +54,9 @@ class TransformerModel(nn.Module):
         # tgt_mask = nn.Transformer.generate_square_subsequent_mask(self, tgt.size(0)).to(tgt.device)
 
         batch_size = tgt.size(1)
-        mock_memory = torch.zeros((self.num_layers, batch_size, self.d_model))
+        mock_memory = torch.zeros((self.num_layers, batch_size, self.d_model)).to(self.device)
 
-        out = self.transformer_decoder(tgt, memory=mock_memory) # tgt_mask=tgt_mask
+        out = self.transformer_decoder(tgt, memory=mock_memory).to(tgt.device) # tgt_mask=tgt_mask
 
         out = self.out(out)
         out = self.softmax(out)

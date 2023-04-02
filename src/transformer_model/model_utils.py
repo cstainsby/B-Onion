@@ -5,61 +5,74 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 from torchtext.vocab import Vocab
-
-from .model import TransformerModel
-from .data_utils import encode_token, decode_token, tokenize_raw_data
+from torchtext.data import get_tokenizer
 
 
-def train_batch(model: TransformerModel, vocab: Vocab, optimizer, criterion, batch, device):
+import transformer_model.model as model
+import transformer_model.data_utils as data_utils
+
+
+def train_batch(model: model.TransformerModel, data_processor: data_utils.DataProcessor, optimizer, criterion, batch, device):
     model.train()
+
+    # initialize needed content
     total_loss = 0
     num_tokens = 0
-
     start_time = time.time()
 
+    torch.cuda.empty_cache()
+
     for i, raw_batch_strs in enumerate(batch):
-        curr_time = time.time()
 
-        if i > 9 and i % 10 == 0:
-            print("i:", i, "time to train 10 instances:", curr_time - start_time)
+        tokenized_data = data_processor.tokenize_raw_data(data=raw_batch_strs)
 
-        full_tokenized_sequence = tokenize_raw_data(data=raw_batch_strs, vocab=vocab)
-
-        # convert tokens to encodings
-        encoded_tokens = [encode_token(vocab, token) for token in full_tokenized_sequence]
+        encoded_tokenized_data = data_processor.encode_tokens(decoded_token_sequence=tokenized_data)
 
         # Convert sentence to tensor and move to device
-        sentence_tensor = torch.tensor(encoded_tokens, dtype=torch.long).unsqueeze(0).to(device)
+        sentence_tensor = torch.tensor(encoded_tokenized_data, dtype=torch.long).unsqueeze(0).to(device)
+
         # Clear gradients
+        model.zero_grad()
         optimizer.zero_grad()
+
         # Forward pass
         output = model(sentence_tensor)
+
         # Flatten output and target for loss calculation
         output = output.view(-1, output.size(-1))
         target = sentence_tensor.view(-1)
+
         # Calculate loss
         loss = criterion(output, target)
+
         # Backward pass
         loss.backward()
+
         # Clip gradients to prevent exploding gradients
         torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+
         # Update parameters
         optimizer.step()
+
         # Update loss and token count
         total_loss += loss.item()
-        num_tokens += len(encoded_tokens)
-        # Print progress
-        if i % 100 == 0:
-            print(f"Iteration {i}: Loss = {total_loss/num_tokens:.4f}")
+        num_tokens += len(encoded_tokenized_data)
+
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+
+        
+    print(f" - Loss = {total_loss/num_tokens:.4f}")
+    print(" - Memory Allocated:" + f"Current CUDA memory usage: {torch.cuda.max_memory_allocated(device=device) / 1024 ** 3:.2f} GB")
 
 
-    print("Total time:", time.time() - start_time)
+    print(" - Total time:", time.time() - start_time)
 
     # Return average loss over all tokens
     return total_loss / num_tokens
 
 
-def generate_text(model: TransformerModel, vocab: Vocab, start_str: str, max_length: int=100, temperature: float=1.0):
+def generate_text(model: model.TransformerModel, vocab: Vocab, start_str: str, max_length: int=100, temperature: float=1.0):
     """
     Generates text from a trained transformer model and a starting string.
 
@@ -74,13 +87,17 @@ def generate_text(model: TransformerModel, vocab: Vocab, start_str: str, max_len
         str: generated words
     """
 
+    # initialize needed content
+    tokenizer = get_tokenizer("spacy") # as a standard for all training I will be using spacy
+    data_processor = data_utils.DataProcessor(vocab=vocab, tokenizer=tokenizer)
+
     with torch.no_grad():
 
         # tokenize the incoming string data 
         # remove last string which is an <eos> created by the tokenize function
-        start_seq = tokenize_raw_data(data=start_str, vocab=vocab)[:-1]
-        start_seq_tokens = [encode_token(vocab, word) for word in start_seq]
-        model_input_tensor = torch.tensor(start_seq_tokens, dtype=torch.long).unsqueeze(0)
+        start_seq = data_processor.tokenize_raw_data(data=start_str)[:-1]
+        start_seq_tokens = data_processor.encode_tokens(start_seq)
+        model_input_tensor = torch.tensor(start_seq_tokens, dtype=torch.long, device=model.device).unsqueeze(0)
 
         for _ in range(max_length):
             out = model(model_input_tensor, memory=None)
@@ -91,50 +108,16 @@ def generate_text(model: TransformerModel, vocab: Vocab, start_str: str, max_len
             generated_token = torch.multinomial(probs, num_samples=1).item()
 
             # Add new token to input sequence
-            model_input_tensor = torch.cat([model_input_tensor, torch.tensor([[generated_token]], dtype=torch.long)], dim=-1)
+            model_input_tensor = torch.cat([model_input_tensor, torch.tensor([[generated_token]], dtype=torch.long, device=model.device)], dim=-1)
 
             # check if <eos> is hit
             #       if so exit function
             #       else yield the next token
-            if generated_token == encode_token(vocab, "<eos>"):
+            if generated_token == data_processor.encode_token("<eos>"):
                 return
             else:
-                generated_text = decode_token(vocab, generated_token)
+                generated_text = data_processor.decode_token(generated_token)
                 yield generated_text
-
-        # Check input sequence length
-        # if len(gen_seq) > model.max_seq_len:
-        #     raise ValueError(f"Input sequence must be at least {model.max_seq_len} words long")
-
-        # # until an <eos> string is hit or the max number of words is hit, keep predicting the next word and yield it
-        # while len(gen_seq) < max_length:
-        #     print("gen_seq:", gen_seq)
-        #     in_text_token_ids = [encode_token(vocab, word) for word in gen_seq]
-        #     sequence_length = len(in_text_token_ids)
-
-        #     curr_seq = torch.tensor([in_text_token_ids], dtype=torch.long)
-
-        #     print("curr_seq", curr_seq.shape)
-        #     print("type of curr_seq:", type(curr_seq))
-        #     logits = model(curr_seq)
-
-        #     # Apply temperature and generate word index
-        #     logits = logits[0, -1, :] / temperature
-        #     probs = F.softmax(logits, dim=-1)
-        #     next_token = torch.multinomial(probs, num_samples=1).item()
-        #     # curr_seq = torch.cat([curr_seq, next_token.unsqueeze(0)], dim=-1)
-
-        #     # check if <eos> is hit
-        #     #       if so exit function
-        #     #       else yield the next token
-        #     if next_token == encode_token(vocab, "<eos>") or sequence_length >= max_length:
-        #         return
-        #     else:
-        #         generated_text = decode_token(vocab, next_token)
-        #         yield generated_text
-
-
-
 
 
 # --------------------------------------------------------------------------------------------------
