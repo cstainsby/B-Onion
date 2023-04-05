@@ -13,4 +13,4 @@ EXPOSE 8000
 
 # entrypoint command - tells dockerfile to execute backend flask app
 # binded to port 8000
-CMD gunicorn --bind 0.0.0.0:8000 --timeout=150 app:app
+CMD gunicorn --bind 0.0.0.0:8000 --timeout=150 app:app`
