@@ -1,3 +1,5 @@
+__pycache__
+
 creds/*
 
 notebooks/.vector_cache
