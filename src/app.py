@@ -4,59 +4,54 @@ import queue
 import torch
 from flask import Flask, render_template, request, Response
 
-import praw_instance
+import praw_instance as praw_instance
 import transformer_model.model as model
 import transformer_model.model_utils as model_utils
 
-app = Flask(__name__)
+
+# all of the webpage functionality 
+# add bot button 
+#   - settings (account?)
+#   - modal where you can describe bot activity, 
+#        how often 
+#        where 
+#        description of tone (maybe tags) 
+#        initiated by cloud functions 
+#       
+
+
 
 # app filepath
-app_path = os.path.dirname(os.path.realpath(__file__))
+backend_path = os.path.dirname(os.path.realpath(__file__))
+
+# static_frontend_filepath = backend_path + "/static"
+# if not os.path.exists(static_frontend_filepath):
+#     static_frontend_filepath = backend_path + "/templates"
+
+app = Flask(__name__)
+praw_inst = praw_instance.PrawInstance()
 
 # import vocab
-SAVE_PATH = app_path + "/transformer_model/vocab_save/" + "embeddings_vocab.pt"
+SAVE_PATH = backend_path + "/transformer_model/vocab_save/" + "embeddings_vocab.pt"
 vocab_obj = torch.load(SAVE_PATH)
 
 # import model
-SAVE_PATH = app_path + "/transformer_model/model_save/" + "glove_emb_model.pt"
+SAVE_PATH = backend_path + "/transformer_model/model_save/" + "glove_emb_model.pt"
 transformer = torch.load(SAVE_PATH)
-
-
-# generator queue definition 
-# https://maxhalford.github.io/blog/flask-sse-no-deps/
-# class generatorPubSub():
-
-#     def __init__(self):
-#         self.listeners = []
-
-#     def listen(self):
-#         q = queue.Queue(maxsize=5)
-#         self.listeners.append(q)
-#         return q
-
-#     def announce(self, msg):
-#         for i in reversed(range(len(self.listeners))):
-#             try:
-#                 self.listeners[i].put_nowait(msg)
-#             except queue.Full:
-#                 del self.listeners[i]
-
-
-# def format_sse(data: str, event=None) -> str:
-#     msg = f'data: {data}\n\n'
-#     if event is not None:
-#         msg = f'event: {event}\n{msg}'
-#     return msg
-
 
 
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("home.html")
+    # this dictionary will be used to store the various 
+    trending_dict = {}
 
-def reddit_trending():
-    pass
+    trending_dict["reddit"] = {}
+    trending_dict["reddit"]["python"] = praw_instance.get_hot_by_subreddit(praw_inst, "python")
+
+    return render_template("home.html", trending_dict=trending_dict)
+
+
 
 
 # @app.route('/trans-end-stream', methods=["POST"])
@@ -82,4 +77,4 @@ def reddit_trending():
 #     return Response(stream_trans_text(prompt_text), mimetype="text/event-stream")
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=3000)

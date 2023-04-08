@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+<!-- Styling -->
+{% block additional_style %}
+<style>
+  #main-container {
+    padding: 64px;
+  }
+  #main-col > * {
+    margin: 24px;
+  }
+  .carousel-item {
+    margin-right: 128px;
+    margin-left: 128px;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %} 
+  <script>
+    // state variables
+    let editMode = false;
+    let currentEditionID = 0;
+    let postEditions = [];
+
+    // components
+    let prompt = document.getElementById("prompt");
+    let editBtn = document.getElementById("edit-button");
+    let enterBtn = document.getElementById("enter-button");
+    let carouselPrevBtn = document.getElementById("carousel-prev")
+    let carouselNextBtn = document.getElementById("carousel-next")
+    console.log("prev btn ref", carouselPrevBtn)
+
+    // display updaters
+    const updateEditionView = () => {
+      let contentSection = document.getElementById("carousel-content-section");
+      let carouselTitle = document.getElementById("carousel-title")
+
+      carouselTitle.textContent = `Edition #${currentEditionID + 1}`
+
+      let html = "";
+      for (let i = 0; i < postEditions.length; i++) {
+        html += `
+          <div class="carousel-item ${i === currentEditionID ? 'active' : ''}">
+            <h4 class="card-title">${postEditions[i].title}</h4>
+            <p class="card-text">${postEditions[i].content}</p>
+          </div>
+        `;
+      }
+      contentSection.innerHTML = html;
+    }
+
+    const switchToEditMode = () => {
+      let contentSection = document.getElementById("carousel-content-section");
+      const currentEdition = postEditions[currentEditionID]
+
+      let html = "";
+      html += `
+          <div class="carousel-item active container">
+            <div class="row">
+              <label for="" 
+              <textarea id="" style="width: 100%;">${currentEdition.title}</textarea>
+            </div>
+            <textarea class="row">${currentEdition.content}</textarea>
+          </div>
+        `;
+      
+
+      contentSection.innerHTML = html;
+    }
+
+    const switchToViewMode = () => {
+
+    }
+
+    // event listners
+    enterBtn.onclick = () => {
+      const promptContent = prompt.value;
+
+      // make api request to flask model wrapper endpoint
+      // for now just set the values to test
+      const newEdition = {
+        title: "test title",
+        content: promptContent
+      }
+
+      // create a new edition 
+      postEditions.push(newEdition)
+      currentEditionID = postEditions.length - 1;
+
+      prompt.value = "";
+      
+      updateEditionView()
+    }
+
+    carouselNextBtn.addEventListener("click", () => {
+      let carouselTitle = document.getElementById("carousel-title")
+      currentEditionID = (currentEditionID + 1) % postEditions.length;
+      carouselTitle.textContent = `Edition #${currentEditionID + 1}`
+    });
+    carouselPrevBtn.addEventListener("click", () => {
+      let carouselTitle = document.getElementById("carousel-title")
+      currentEditionID = (currentEditionID - 1) % postEditions.length;
+      carouselTitle.textContent = `Edition #${currentEditionID + 1}`
+    });
+
+
+
+    editBtn.onclick = () => {
+      console.log("editMode  NOW set to:", editMode)
+
+      switchToEditMode();
+    }
+    carouselPrevBtn.onclick = () => {editMode = false}
+    carouselNextBtn.onclick = () => {editMode = false}
+
+    // conditional rendering 
+    console.log("editMode set to:", editMode)
+
+  </script>
+{% endblock %}
+
+{% block content %}
+  <div id="main-container" class="container-fluid">
+    <div id="header-row" class="row text-center">
+      <!-- <h1>Bonion</h1> -->
+    </div>
+    <div id="main-row" class="row">
+      <div id="main-col" class="col">
+
+        <div class="row g-2">
+          <div class="col-md-8">
+            <label for="prompt" class="visually-hidden">Prompt</label>
+            <!-- <input type="text" class="form-control" id="prompt" placeholder="Enter your prompt here"> -->
+            <textarea placeholder="Enter your prompt here" id="prompt" style="height: 100px; width: 100%;"></textarea>
+          </div>
+          <div class="col-auto">
+            <button id="enter-button" class="btn btn-primary mb-2">Enter</button>
+          </div>
+        </div>
+
+
+        <div class="card row">
+          <div class="card-header container">
+            <h4 id="carousel-title" class="col-md-auto">Start by entering into prompt</h4>
+            <div class="col col-lg-2">
+              <button id="edit-button" class="btn btn-primary">Edit</button>
+              <button class="btn btn-primary">Remove</button>
+            </div>
+          </div>
+          <div class="card-body" style="min-height: 100px;">
+            <div id="carousel-edition-section" class="carousel slide carousel-dark">
+              <div id="carousel-content-section" class="carousel-inner">
+              </div>
+              <button id="carousel-prev" class="carousel-control-prev" type="button" data-bs-target="#carousel-edition-section" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button id="carousel-next" class="carousel-control-next" type="button" data-bs-target="#carousel-edition-section" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+      <div id="feed-col" class="col-sm-2">
+        <h4>Feed Col</h4>
+        <ul>
+          <h4>Reddit</h4>
+          {% for subreddit in trending_dict["reddit"] %}
+            <li>
+              <h4>{{ subreddit }}</h4>
+              <ul>
+                {% for top_post in trending_dict["reddit"][subreddit] %}
+                  <li><p>top post: {{ top_post }}</p></li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

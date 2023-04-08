@@ -31,13 +31,19 @@ class PrawInstance():
         return self.reddit_inst
 
 
+def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7):
+    """Gets the top"""
+    if praw_inst and subreddit_name != "":
+        return [hot_post for hot_post in praw_inst().subreddit(subreddit_name).hot(limit=limit) if not hot_post.stickied]
+    return []
+
 
 
 if __name__ == "__main__":
     # run specifically the PrawInstance for functionality check
     praw_inst = PrawInstance()
 
-    hot_in_rpython = praw_inst().subreddit("python").hot(limit=5)
+    hot_in_rpython = get_hot_by_subreddit(praw_inst, "python")
 
     for submission in hot_in_rpython:
         print("Title: {}, upvote: {}, downvote: {}, have_we_visited: {}"
