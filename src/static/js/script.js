@@ -12,11 +12,26 @@ let carouselPrevBtn = document.getElementById("carousel-prev")
 let carouselNextBtn = document.getElementById("carousel-next")
 
 // display updaters
+const addSpinner = (htmlRootElementId) => {
+  // helper to show spinning icon during requests
+  let rootElement = document.getElementById(htmlRootElementId)
+
+  let html = `
+  <div id="loading-spinner" class="spinner-border" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>`;
+  rootElement.innerHTML = html;
+}
+
+const updateEditionTitle = (titleStr) => {
+  let carouselTitle = document.getElementById("carousel-title");
+  carouselTitle.textContent =  titleStr;
+}
+
 const updateEditionView = () => {
     let contentSection = document.getElementById("carousel-content-section");
-    let carouselTitle = document.getElementById("carousel-title")
 
-    carouselTitle.textContent = `Edition #${currentEditionID + 1}`
+    updateEditionTitle(`Edition #${currentEditionID + 1}`)
 
     let html = "";
     for (let i = 0; i < postEditions.length; i++) {
@@ -68,6 +83,8 @@ const updateEditionView = () => {
 
     // make api request to flask model wrapper endpoint
     sendPromptToOpenAI(promptContent, currentEditions)
+      .then(addSpinner("carousel-content-section"))
+      .then(updateEditionTitle("Loading New Edition"))
       .then(modelResponse => {
         console.log("model res " + modelResponse);
         // create a new edition

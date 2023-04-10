@@ -95,7 +95,6 @@ def send_open_ai_prompt():
         editions: all current editions in a list
     """
     req = request.get_json()
-    print("request", req)
     # this prompt will contain everything that will inform how to generate the text
     prompt = req["prompt_contents"]
     currentEditions = req["editions"]
@@ -112,8 +111,6 @@ def send_open_ai_prompt():
         referenced_editions:
             {editions_str}
     """.format(current_prompt=prompt, editions_str=formated_edition_str)
-
-    print("openAI prompt", openai_prompt)
 
     openai_res = openai.Completion.create(
         model=openai_model_def,

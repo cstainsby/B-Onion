@@ -38,7 +38,7 @@ const sendPromptToOpenAI = async (promptText, editions) => {
   try {
     const res = await fetch(url, options);
     const result = await res.json();
-    console.log("result", result.choices[0].text);
+    console.log("result", result["choices"][0].text);
     return result.choices[0].text;
   } catch (error) {
     console.error(error);
