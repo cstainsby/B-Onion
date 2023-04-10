@@ -32,10 +32,18 @@ class PrawInstance():
 
 
 def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7):
-    """Gets the top"""
+    """Gets the top posts on a subreddit
+        RETURNS: dict of dict"""
+    hot_by_sub = {}
     if praw_inst and subreddit_name != "":
-        return [hot_post for hot_post in praw_inst().subreddit(subreddit_name).hot(limit=limit) if not hot_post.stickied]
-    return []
+        post_obj_lst = [hot_post for hot_post in praw_inst().subreddit(subreddit_name).hot(limit=limit) if not hot_post.stickied]
+        for post in post_obj_lst:
+            hot_by_sub[post] = {
+                "title": post.title,
+                "upvotes": post.ups,
+                "downvotes": post.downs
+            }
+    return hot_by_sub
 
 
 
