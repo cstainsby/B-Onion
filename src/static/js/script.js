@@ -8,10 +8,22 @@ let postEditions = [];
 let prompt = document.getElementById("prompt");
 let editBtn = document.getElementById("edit-button");
 let enterBtn = document.getElementById("enter-button");
-let carouselPrevBtn = document.getElementById("carousel-prev")
-let carouselNextBtn = document.getElementById("carousel-next")
+let carouselPrevBtn = document.getElementById("carousel-prev");
+let carouselNextBtn = document.getElementById("carousel-next");
 
 // display updaters
+const setFullPostViewData = (titleStr, bodyStr) => {
+  console.log("Opening Modal");
+  console.log("title " + titleStr);
+  console.log("body " + bodyStr);
+
+  // set the title and body
+  let modalTitle = document.getElementById("full-post-view-title")
+  let modalBodyText = document.getElementById("full-post-view-body-text")
+  modalTitle.textContent = titleStr;
+  modalBodyText.textContent = bodyStr;
+}
+
 const addSpinner = (htmlRootElementId) => {
   // helper to show spinning icon during requests
   let rootElement = document.getElementById(htmlRootElementId)
@@ -68,10 +80,10 @@ const updateEditionView = () => {
   }
 
   // event listners
-  document.addEventListener('DOMContentLoaded', () => {
-    // on page load
-    initializeOpenAI();
-  });
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   // on page load
+  //   initializeOpenAI();
+  // });
 
 
   enterBtn.onclick = () => {
@@ -89,8 +101,8 @@ const updateEditionView = () => {
         console.log("model res " + modelResponse);
         // create a new edition
         const newEdition = {
-          title: "test title",
-          content: modelResponse
+          title: modelResponse.title,
+          content: modelResponse.content
         }
         
         console.log("new edition " + JSON.stringify(newEdition));

@@ -36,55 +36,62 @@ openai.api_key = os.environ["openai_token"]
 
 @app.route("/", methods=["GET"])
 def home():
+    pinned_subreddits =[
+        "python", "news", "amitheasshole"
+    ]
+
     # this dictionary will be used to store the various 
     trending_dict = {}
 
+    # add pinned subreddits to webpage
     trending_dict["reddit"] = {}
-    trending_dict["reddit"]["python"] = praw_instance.get_hot_by_subreddit(praw_inst, "python")
-
+    for pinned_reddit_sub in pinned_subreddits:
+        trending_dict["reddit"][pinned_reddit_sub] = praw_instance.get_hot_by_subreddit(praw_inst, pinned_reddit_sub)
+    
     return render_template("home.html", trending_dict=trending_dict)
 
 
-@app.route("/openai/init", methods=["POST"])
-def initialize_open_ai_prompting():
-    # this message will prime the ongoing openai session for 
-    prompt_structure_init_message = """
-        Your job will be to help the user create articles or social media 
-        posts based on the prompts they provide.  
+# @app.route("/openai/init", methods=["POST"])
+# def initialize_open_ai_prompting():
+#     # this message will prime the ongoing openai session for 
+#     prompt_structure_init_message = """
+#         Your job will be to help the user create text based on the prompts they provide.  
 
-        An Edition will be defined as
-            Edition:
-                id: an integer
-                title: a string title for the edition
-                content: a string of content for the edition
+#         An Edition will be defined as
+#             Edition:
+#                 id: an integer
+#                 title: a string title for the edition
+#                 content: a string of content for the edition
 
-        For the following prompts, they will all be in the form 
-            current_prompt: 
-                a string describing the instructions,
+#         For the following prompts, they will all be in the form 
+#             current_prompt: 
+#                 a string describing the instructions,
 
-            referenced_editions:
-                a list of editions, each with the above described contents
-                Note that this can be empty, if there is no referenced_editions,
-                    you can assume that it is empty
-                This will be used by you to gain context related to the users 
-                    current prompt.
+#             referenced_editions:
+#                 a list of editions, each with the above described contents
+#                 Note that this can be empty, if there is no referenced_editions,
+#                     you can assume that it is empty
+#                 This will be used by you to gain context related to the users 
+#                     current prompt.
 
                 
-        Your responses should be formatted to include
-            an Edition:
-                should be the the same format listed above, without an id    
+#         Your text responses should be formatted to include
+#             an Edition:
+#                 should be the the same format listed above, without an id    
 
-        Note that your responses should only ever contain formatted Edition's, nothing else.        
-    """
+#         Note that your responses should only ever contain formatted Edition's, nothing else.        
+#     """
 
-    openai_res = openai.Completion.create(
-        model=openai_model_def,
-        prompt=prompt_structure_init_message,
-        temperature=0,
-        max_tokens=5)
+#     openai_res = openai.Completion.create(
+#         model=openai_model_def,
+#         prompt=prompt_structure_init_message,
+#         temperature=0,
+#         max_tokens=5)
+    
+#     print("init prompt res", openai_res)
 
-    res = Response(json.dumps(openai_res), mimetype="application/json")
-    return res
+#     res = Response(json.dumps(openai_res), mimetype="application/json")
+#     return res
 
 
 @app.route("/openai/prompt", methods=["POST"])
@@ -99,13 +106,45 @@ def send_open_ai_prompt():
     prompt = req["prompt_contents"]
     currentEditions = req["editions"]
 
-    # scan for any edition tags in the prompt, this will 
+    # scan for any tags in the prompt
     edition_ids_to_include = app_utils.scan_for_edition_tag_ids(prompt)
-    editions_to_include_dict = app_utils.get_included_editions(currentEditions, edition_ids_to_include)
-    editions_strs = app_utils.editions_to_strs(editions_to_include_dict)
-    formated_edition_str = app_utils.formated_req_edition_str(editions_strs)
+    reddit_ids_to_include = app_utils.scan_for_reddit_tags(prompt)
+
+    # process any reddit tags if they exist
+    reddit_edition_strs = []
+    if len(reddit_ids_to_include) > 0:
+        reddit_posts_to_id = [
+            praw_instance.get_post_by_id(praw_inst, post_id) for post_id in reddit_ids_to_include
+            ]
+        reddit_edition_strs = [
+            app_utils.reddit_post_to_edition_str(reddit_post) for reddit_post in reddit_posts_to_id
+        ]
+
+    # process tagged editions if there are any
+    editions_strs = []
+    if len(reddit_ids_to_include) > 0:
+        editions_to_include_dict = app_utils.get_included_editions(currentEditions, edition_ids_to_include)
+        editions_strs = app_utils.editions_to_strs(editions_to_include_dict)
+
+
+    # format all linked editions into something that can be processed by our defined input style
+    formated_edition_str = app_utils.formated_req_edition_str(
+        editions_strs + reddit_edition_strs
+        )
 
     openai_prompt = """
+    Your job will be to help the user create text based on the prompts they provide.  
+
+    An Edition will be defined as
+        Edition:
+            id: an integer
+            title: a string title for the edition
+            content: a string of content for the edition
+
+    Your text responses should be formatted to include
+            an Edition:
+                should be the the same format listed above, without an id 
+
         current_prompt:
             {current_prompt}
         referenced_editions:
@@ -118,7 +157,17 @@ def send_open_ai_prompt():
         temperature=0.5,
         max_tokens=300)
 
-    res = Response(json.dumps(openai_res), mimetype="application/json")
+    openai_res_text = app_utils.get_text_from_openai_res(openai_res)
+
+    print("type", type(openai_res_text))
+    print("open ai res text", openai_res_text)
+    print("end reponse text")
+    
+    formated_openai_res = app_utils.get_edition_items_from_openai_res_text(openai_res_text)
+    
+    print("open AI response", formated_openai_res)
+
+    res = Response(json.dumps(formated_openai_res), mimetype="application/json")
     return res
 
 if __name__ == '__main__':

@@ -41,9 +41,13 @@ def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
             hot_by_sub[post] = {
                 "title": post.title,
                 "upvotes": post.ups,
-                "downvotes": post.downs
+                "downvotes": post.downs,
+                "selftext": post.selftext
             }
     return hot_by_sub
+
+def get_post_by_id(praw_inst: PrawInstance, post_id: str):
+    return praw_inst().submission(id=post_id)
 
 
 
