@@ -159,13 +159,17 @@ def send_open_ai_prompt():
 
     openai_res_text = app_utils.get_text_from_openai_res(openai_res)
 
-    print("type", type(openai_res_text))
-    print("open ai res text", openai_res_text)
-    print("end reponse text")
+#     openai_res_text = """
+# Edition:
+#     title: "The Mythical Beast"
+#     content: "Long ago, there lived a mythical creature that was said to be the most powerful being in the land. It had the ability to control the elements and could manipulate the very fabric of reality. One day, a brave adventurer set out to find the creature and prove its existence. After a long and perilous journey, the adventurer found the creature and was able to capture it. The creature granted the adventurer three wishes, and with them, the adventurer's dreams came true."
+# end reponse text"""
+#     openai_res_text = app_utils.clean_res_str(openai_res_text)
+
     
     formated_openai_res = app_utils.get_edition_items_from_openai_res_text(openai_res_text)
     
-    print("open AI response", formated_openai_res)
+    # print("open AI response", formated_openai_res)
 
     res = Response(json.dumps(formated_openai_res), mimetype="application/json")
     return res

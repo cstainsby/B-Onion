@@ -82,14 +82,30 @@ def formated_req_edition_str(stringified_editions: list) -> str:
 # -----------------------------------------------------------------------
 #       
 # -----------------------------------------------------------------------
+def clean_res_str(res_str: str):
+    cleaned_res_str = res_str
+
+    # replace all newlines and tabs with spaces
+    chars_to_spaces = ['\n', '\t']
+    for char in chars_to_spaces:
+        cleaned_res_str = cleaned_res_str.replace(char, " ")
+
+    # remove all of 
+    chars_to_remove = ['\"']
+    for char in chars_to_remove:
+        cleaned_res_str = cleaned_res_str.replace(char, " ")
+    print("clean text" + cleaned_res_str)
+    return cleaned_res_str
+
+
 def get_text_from_openai_res(res) -> str:
     num_choices = len(res["choices"])
     text = str(res["choices"][random.randint(0, num_choices - 1)]["text"])
 
     # clean data 
-    text.replace("\n", " ")
+    clean_text = clean_res_str(text)
 
-    return text
+    return clean_text
 
 def get_edition_items_from_openai_res_text(res_text: str) -> dict:
     """Gets all edition contents from an openai res
@@ -99,14 +115,31 @@ def get_edition_items_from_openai_res_text(res_text: str) -> dict:
         returns dictionary with edition contents
     """
     edition_dict = {}
+    edition_dict["title"] = ""
+    edition_dict["content"] = ""
     
-    titles = re.findall(r'title:\s*"([^"]+)"', res_text)
-    contents = re.findall(r'content:\s*"([^"]+)"', res_text)
+    title_pattern = r"title:(\s|\S)*content:"
+    content_pattern = r"content:(\s|\S)*"
 
-    if len(titles) > 0 and len(contents) > 0:
-        edition_dict["title"] = titles[0]
-        edition_dict["content"] = contents[0]
-    else:
-        edition_dict["title"] = ""
-        edition_dict["content"] = ""
+    title_search_obj = re.search(title_pattern, res_text)
+    content_search_obj = re.search(content_pattern, res_text)
+
+    # define the lengths of the tags included in the openai res 
+    #   to make code more readable
+    content_tag_len = 8
+    title_tag_len = 6
+    end_of_str_tag_len = 16
+
+    if title_search_obj:
+        extracted_title = title_search_obj.group(0)
+        # remove "title:" and "content:" tags
+        trimmed_title = extracted_title[title_tag_len:len(extracted_title)-content_tag_len]
+        edition_dict["title"] = trimmed_title
+
+    if content_search_obj:
+        extracted_content = content_search_obj.group(0)
+        # trim "content:" tag at end
+        trimmed_content = extracted_content[content_tag_len:]
+        edition_dict["content"] = trimmed_content
+        
     return edition_dict
