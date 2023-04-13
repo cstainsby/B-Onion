@@ -1,21 +1,67 @@
 
 // state variables
 let editMode = false;
-let currentEditionID = 0;
-let postEditions = [];
+
+// crud object for helping with managing and navigating editions
+let editionBrowser = {
+  postEditions: {},   // dict for storing editions, structured
+                      // editionID: {
+                      //   title: str
+                      //   content: str
+                      //}
+  nextInsertionID: 1,
+  currentEditionID: 0,
+
+  getCurrentEditionID() {
+    return this.currentEditionID;
+  },
+  getCurrentEdition() { 
+    return this.postEditions[this.currentEditionID]; 
+  },
+  getEditionIDs() {
+    return Object.keys(this.postEditions).sort(function(a, b){return a-b});
+  },
+  getAllEditions() {
+    return Object.values(this.postEditions);
+  },
+  getKeyIndexOfCurrentlySelectedEdition() {
+    // returns index in terms of keys which have been sorted least to greatest 
+    //  based on where the currentEditionID Edtion would sit
+    let sortedKeys = Object.keys(this.postEditions).sort(function(a, b){return a-b});
+    return sortedKeys.indexOf(this.currentEditionID.toString());
+  },
+  changeToNextEdition() {
+    let sortedKeys = Object.keys(this.postEditions).sort(function(a, b){return a-b});
+    indexOfNextKey = (sortedKeys.indexOf(this.currentEditionID) + 1) % sortedKeys.length;
+    this.currentEditionID = sortedKeys[indexOfNextKey];
+  },
+  changeToPrevEdition() {
+    let sortedKeys = Object.keys(this.postEditions).sort(function(a, b){return a-b});
+    indexOfPrevKey = (sortedKeys.indexOf(this.currentEditionID) - 1 + sortedKeys.length) % sortedKeys.length;
+    this.currentEditionID = sortedKeys[indexOfPrevKey];
+  },
+  addEdition(edition) {
+    this.postEditions[this.nextInsertionID] = edition;
+    this.currentEditionID = this.nextInsertionID;
+    this.nextInsertionID += 1;
+  },
+  removeCurrentEdition() {
+    delete this.postEditions[currentEditionID];
+    currentEditionID -= 1;
+  }
+}
 
 // components
 let prompt = document.getElementById("prompt");
 let editBtn = document.getElementById("edit-button");
 let enterBtn = document.getElementById("enter-button");
+let postBtn = document.getElementById("post-button");
+let modalPostBtn = document.getElementById("modal-post-button");
 let carouselPrevBtn = document.getElementById("carousel-prev");
 let carouselNextBtn = document.getElementById("carousel-next");
 
 // display updaters
 const setFullPostViewData = (titleStr, bodyStr) => {
-  console.log("Opening Modal");
-  console.log("title " + titleStr);
-  console.log("body " + bodyStr);
 
   // set the title and body
   let modalTitle = document.getElementById("full-post-view-title")
@@ -35,101 +81,152 @@ const addSpinner = (htmlRootElementId) => {
   rootElement.innerHTML = html;
 }
 
-const updateEditionTitle = (titleStr) => {
+const fillPostModal = (edition) => {
+  let modalTitleElement = document.getElementById("post-modal-title");
+  let modalContentElement = document.getElementById("post-model-content");
+
+  modalTitleElement.textContent = edition.title;
+  modalContentElement.textContent = edition.content;
+}
+
+const updateEditionTitle = (editionBrowser) => {
+  let currEdnID = editionBrowser.getCurrentEditionID();
+  let titleStr = `Edition #${currEdnID}`
+  let includeStr = `@edition${currEdnID}`
+
   let carouselTitle = document.getElementById("carousel-title");
+  carouselTitle.textContent =  titleStr;
+
+  // include edition tag if there is a valid edition availble
+  if (currEdnID + 1 > 0) {
+    let carouselTitleIncludeTag = document.getElementById("carousel-title-include-tag");
+    carouselTitleIncludeTag.textContent = "Include edition with: " + includeStr;
+  }
+}
+
+const updateTitleToLoadStatus = () => {
+  let carouselTitle = document.getElementById("carousel-title");
+  let titleStr = "Loading New Edition";
   carouselTitle.textContent =  titleStr;
 }
 
-const updateEditionView = () => {
-    let contentSection = document.getElementById("carousel-content-section");
+const updateEditionView = (editionBrowser) => {
+  let contentSection = document.getElementById("carousel-content-section");
+  let currEditions = editionBrowser.getAllEditions();
+  let indexOfCurrEdition = editionBrowser.getKeyIndexOfCurrentlySelectedEdition();
+  // let currEditionID = editionBrowser.getCurrentEditionID();
 
-    updateEditionTitle(`Edition #${currentEditionID + 1}`)
+  console.log("index of curr edition", indexOfCurrEdition);
 
-    let html = "";
-    for (let i = 0; i < postEditions.length; i++) {
-      html += `
-        <div class="carousel-item ${i === currentEditionID ? 'active' : ''}">
-          <h4 class="card-title">${postEditions[i].title}</h4>
-          <p class="card-text">${postEditions[i].content}</p>
-        </div>
-      `;
-    }
-    contentSection.innerHTML = html;
-  }
+  updateEditionTitle(editionBrowser);
 
-  const switchToEditMode = () => {
-    let contentSection = document.getElementById("carousel-content-section");
-    const currentEdition = postEditions[currentEditionID]
-
-    let html = "";
+  let html = "";
+  for (let i = 0; i < currEditions.length; i++) {
     html += `
-        <div class="carousel-item active container">
-          <div class="row">
-            <label for="" 
-            <textarea id="" style="width: 100%;">${currentEdition.title}</textarea>
-          </div>
-          <textarea class="row">${currentEdition.content}</textarea>
+      <div class="carousel-item ${i === indexOfCurrEdition ? 'active' : ''}">
+        <h4 class="card-title">${currEditions[i].title}</h4>
+        <p class="card-text">${currEditions[i].content}</p>
+      </div>
+    `;
+  }
+  contentSection.innerHTML = html;
+}
+
+const switchToEditMode = () => {
+  let contentSection = document.getElementById("carousel-content-section");
+  const currentEdition = postEditions[currentEditionID]
+
+  let html = "";
+  html += `
+      <div class="carousel-item active container">
+        <div class="row">
+          <label for="" 
+          <textarea id="" style="width: 100%;">${currentEdition.title}</textarea>
         </div>
-      `;
+        <textarea class="row">${currentEdition.content}</textarea>
+      </div>
+    `;
 
-    contentSection.innerHTML = html;
-  }
+  contentSection.innerHTML = html;
+}
 
-  const switchToViewMode = () => {
+const switchToViewMode = () => {
 
-  }
+}
 
-  // event listners
-  // document.addEventListener('DOMContentLoaded', () => {
-  //   // on page load
-  //   initializeOpenAI();
-  // });
+// event listners
+enterBtn.onclick = () => {
+  const promptContent = prompt.value;                      // get the current prompt in the text box 
+  const currentEditions = editionBrowser.getAllEditions(); // get the currently saved editions
 
+  // clear text box
+  prompt.value = "";
 
-  enterBtn.onclick = () => {
-    const promptContent = prompt.value;
-    const currentEditions = postEditions;
+  // make api request to flask model wrapper endpoint
+  sendPromptToOpenAI(promptContent, currentEditions)
+    .then(addSpinner("carousel-content-section"))
+    .then(updateTitleToLoadStatus())
+    .then(modelResponse => {
+      // create a new edition
+      const newEdition = {
+        title: modelResponse.title,
+        content: modelResponse.content
+      }
 
-    // clear text box
-    prompt.value = "";
+      editionBrowser.addEdition(newEdition);
 
-    // make api request to flask model wrapper endpoint
-    sendPromptToOpenAI(promptContent, currentEditions)
-      .then(addSpinner("carousel-content-section"))
-      .then(updateEditionTitle("Loading New Edition"))
-      .then(modelResponse => {
-        console.log("model res " + modelResponse);
-        // create a new edition
-        const newEdition = {
-          title: modelResponse.title,
-          content: modelResponse.content
-        }
-        
-        console.log("new edition " + JSON.stringify(newEdition));
-        postEditions.push(newEdition);
-        currentEditionID = postEditions.length - 1;
+      // postEditions[currentEditionID] = newEdition;
+      // currentEditionID = postEditions.length - 1;
 
-        updateEditionView()
-      });
-  }
+      updateEditionView(editionBrowser);
+      updateEditionTitle(editionBrowser);
+    });
+}
 
-  carouselNextBtn.addEventListener("click", () => {
-    let carouselTitle = document.getElementById("carousel-title")
-    currentEditionID = (currentEditionID + 1) % postEditions.length;
-    carouselTitle.textContent = `Edition #${currentEditionID + 1}`
-  });
-  carouselPrevBtn.addEventListener("click", () => {
-    let carouselTitle = document.getElementById("carousel-title")
-    currentEditionID = (currentEditionID - 1 + postEditions.length) % postEditions.length;
-    carouselTitle.textContent = `Edition #${currentEditionID + 1}`
-  });
+carouselNextBtn.addEventListener("click", () => {
+  editionBrowser.changeToNextEdition();
 
+  let carouselTitle = document.getElementById("carousel-title");
+  let currEdnID = editionBrowser.getCurrentEditionID();
+  carouselTitle.textContent = `Edition #${currEdnID}`;
+});
+carouselPrevBtn.addEventListener("click", () => {
+  editionBrowser.changeToPrevEdition();
+
+  let carouselTitle = document.getElementById("carousel-title");
+  let currEdnID = editionBrowser.getCurrentEditionID();
+  carouselTitle.textContent = `Edition #${currEdnID}`;
+});
 
 
-  editBtn.onclick = () => {
-    console.log("editMode  NOW set to:", editMode)
 
-    switchToEditMode();
-  }
-  carouselPrevBtn.onclick = () => {editMode = false}
-  carouselNextBtn.onclick = () => {editMode = false}
+editBtn.onclick = () => {
+  switchToEditMode();
+}
+carouselPrevBtn.onclick = () => {editMode = false}
+carouselNextBtn.onclick = () => {editMode = false}
+
+
+postBtn.onclick = () => { 
+  // fill with the current edition
+  let currEdition = editionBrowser.getCurrentEdition();
+  fillPostModal(currEdition);
+}
+
+modalPostBtn.onclick = () => {
+  // post current edition to selected area 
+  // for now just reddit
+  let modalSubredditPrompt = document.getElementById("post-address-prompt");
+  let modalBody = document.getElementById("post-modal-body");
+
+  let currEdition = editionBrowser.getCurrentEdition();
+    postEditionToReddit(modalSubredditPrompt.value, currEdition)
+    .then(addSpinner("carousel-content-section"))
+    .then(addSpinner("post-modal-body"))
+    .then(modalResponse => {
+      modalBody.innerHTML = `
+        <b>Post Success</b>
+      `
+    })
+    .catch(error => console.log('error:', error));;
+}

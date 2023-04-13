@@ -128,7 +128,6 @@ def get_edition_items_from_openai_res_text(res_text: str) -> dict:
     #   to make code more readable
     content_tag_len = 8
     title_tag_len = 6
-    end_of_str_tag_len = 16
 
     if title_search_obj:
         extracted_title = title_search_obj.group(0)

@@ -27,6 +27,7 @@
 {% endblock %}
 
 {% block content %}
+
   <div id="main-container" class="container-fluid">
     <div id="header-row" class="row text-center">
       <!-- <h1>Bonion</h1> -->
@@ -45,20 +46,22 @@
           </div>
         </div>
 
-
+        <!-- Edition section -->
         <div class="card row">
           <div class="card-header container">
             <h4 id="carousel-title" class="col-md-auto">Start by entering into prompt</h4>
+            <small id="carousel-title-include-tag"></small>
             <div class="col col-lg-4">
               <button id="edit-button" class="btn btn-primary">Edit</button>
               <button class="btn btn-primary">Remove</button>
-              <button id="post-button" class="btn btn-primary">Post</button>
+              <button id="post-button" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirm-post-modal">
+                Post
+              </button>    
             </div>
           </div>
           <div class="card-body" style="min-height: 100px;">
             <div id="carousel-edition-section" class="carousel slide carousel-dark">
-              <div id="carousel-content-section" class="carousel-inner">
-              </div>
+              <div id="carousel-content-section" class="carousel-inner"></div>   
               <button id="carousel-prev" class="carousel-control-prev" type="button" data-bs-target="#carousel-edition-section" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Previous</span>
@@ -66,7 +69,7 @@
               <button id="carousel-next" class="carousel-control-next" type="button" data-bs-target="#carousel-edition-section" data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Next</span>
-              </button>
+              </button>             
             </div>
           </div>
         </div>
@@ -104,6 +107,30 @@
         </div>
       </div>
 
+      <!-- confirm post modal -->
+      <div class="modal fade" id="confirm-post-modal" tabindex="-1" aria-labelledby="confirm-post-modal-title" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="confirm-post-modal-title">Configure Your Post</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="post-modal-body" class="modal-body">
+              <textarea placeholder="Enter Subreddit Name" id="post-address-prompt" style="height: 35px; width: 70%;" ></textarea>
+              <br>
+              <b>Title</b>
+              <p id="post-modal-title"></p>
+              <b>Content</b>
+              <p id="post-model-content"></p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button id="modal-post-button" type="button" class="btn btn-primary">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- expanded view for a reddit post -->
       <!-- <div id="full-post-view" class="modal modal-dialog-centered modal-dialog-scrollable" tabindex="-1">
         <div class="modal-dialog">

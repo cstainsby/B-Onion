@@ -122,7 +122,7 @@ def send_open_ai_prompt():
 
     # process tagged editions if there are any
     editions_strs = []
-    if len(reddit_ids_to_include) > 0:
+    if len(edition_ids_to_include) > 0:
         editions_to_include_dict = app_utils.get_included_editions(currentEditions, edition_ids_to_include)
         editions_strs = app_utils.editions_to_strs(editions_to_include_dict)
 
@@ -142,7 +142,7 @@ def send_open_ai_prompt():
             content: a string of content for the edition
 
     Your text responses should be formatted to include
-            an Edition:
+            a single Edition with nothing after:
                 should be the the same format listed above, without an id 
 
         current_prompt:
@@ -151,27 +151,44 @@ def send_open_ai_prompt():
             {editions_str}
     """.format(current_prompt=prompt, editions_str=formated_edition_str)
 
-    openai_res = openai.Completion.create(
-        model=openai_model_def,
-        prompt=openai_prompt,
-        temperature=0.5,
-        max_tokens=300)
+    # openai_res = openai.Completion.create(
+    #     model=openai_model_def,
+    #     prompt=openai_prompt,
+    #     temperature=0.5,
+    #     max_tokens=300)
 
-    openai_res_text = app_utils.get_text_from_openai_res(openai_res)
+    # openai_res_text = app_utils.get_text_from_openai_res(openai_res)
 
-#     openai_res_text = """
-# Edition:
-#     title: "The Mythical Beast"
-#     content: "Long ago, there lived a mythical creature that was said to be the most powerful being in the land. It had the ability to control the elements and could manipulate the very fabric of reality. One day, a brave adventurer set out to find the creature and prove its existence. After a long and perilous journey, the adventurer found the creature and was able to capture it. The creature granted the adventurer three wishes, and with them, the adventurer's dreams came true."
-# end reponse text"""
-#     openai_res_text = app_utils.clean_res_str(openai_res_text)
+    openai_res_text = """
+Edition:
+    title: "The Mythical Beast"
+    content: "Long ago, there lived a mythical creature that was said to be the most powerful being in the land. It had the ability to control the elements and could manipulate the very fabric of reality. One day, a brave adventurer set out to find the creature and prove its existence. After a long and perilous journey, the adventurer found the creature and was able to capture it. The creature granted the adventurer three wishes, and with them, the adventurer's dreams came true."
+    """
+    openai_res_text = app_utils.clean_res_str(openai_res_text)
 
     
     formated_openai_res = app_utils.get_edition_items_from_openai_res_text(openai_res_text)
-    
-    # print("open AI response", formated_openai_res)
 
     res = Response(json.dumps(formated_openai_res), mimetype="application/json")
+    return res
+
+@app.route("/reddit/post", methods=["POST"])
+def post_to_reddit():
+    """
+    input in body includes:
+        the edition which should be posted
+    """
+    req = request.get_json()
+
+    subreddit_name = req["subreddit_name"]
+    edition_dict = {
+        "title": req["title"],
+        "content": req["content"]
+    }
+
+    praw_instance.post_edition_to_reddit(praw_inst, subreddit_name, edition_dict)
+
+    res = Response(mimetype="application/json")
     return res
 
 if __name__ == '__main__':

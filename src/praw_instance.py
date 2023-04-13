@@ -49,7 +49,12 @@ def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
     return praw_inst().submission(id=post_id)
 
-
+def post_edition_to_reddit(praw_inst: PrawInstance, subreddit_name: str, edition: dict):
+    if "title" in edition and "content" in edition:
+        praw_inst().subreddit(subreddit_name).submit(
+            title=edition["title"],
+            selftext=edition["content"]
+        )
 
 if __name__ == "__main__":
     # run specifically the PrawInstance for functionality check
