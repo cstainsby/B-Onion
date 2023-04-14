@@ -3,10 +3,11 @@ import json
 import openai
 from flask import Flask, render_template, request, Response
 
+# from google_secret_access import access_secret_version
 import app_utils
 import praw_instance as praw_instance
-import transformer_model.model as model
-import transformer_model.model_utils as model_utils
+# import transformer_model.model as model
+# import transformer_model.model_utils as model_utils
 
 
 # all of the webpage functionality 
@@ -22,17 +23,25 @@ import transformer_model.model_utils as model_utils
 
 
 # app filepath
-backend_path = os.path.dirname(os.path.realpath(__file__))
+# backend_path = os.path.dirname(os.path.realpath(__file__))
 
 # static_frontend_filepath = backend_path + "/static"
 # if not os.path.exists(static_frontend_filepath):
 #     static_frontend_filepath = backend_path + "/templates"
 
+# def get_cred_config(secret_id):
+#     secret = os.environ.get("CLOUD_SQL_CREDENTIALS_SECRET")
+#     if secret:
+#         return json.loads(secret)
+
+# os.environ.get("praw_client_secret")
+
+
 app = Flask(__name__)
 praw_inst = praw_instance.PrawInstance()
 
 openai_model_def = "text-davinci-003"
-openai.api_key = os.environ["openai_token"]
+openai.api_key = os.environ.get("openai_access_token")
 
 @app.route("/", methods=["GET"])
 def home():
@@ -151,20 +160,20 @@ def send_open_ai_prompt():
             {editions_str}
     """.format(current_prompt=prompt, editions_str=formated_edition_str)
 
-    # openai_res = openai.Completion.create(
-    #     model=openai_model_def,
-    #     prompt=openai_prompt,
-    #     temperature=0.5,
-    #     max_tokens=300)
+    openai_res = openai.Completion.create(
+        model=openai_model_def,
+        prompt=openai_prompt,
+        temperature=0.5,
+        max_tokens=300)
 
-    # openai_res_text = app_utils.get_text_from_openai_res(openai_res)
+    openai_res_text = app_utils.get_text_from_openai_res(openai_res)
 
-    openai_res_text = """
-Edition:
-    title: "The Mythical Beast"
-    content: "Long ago, there lived a mythical creature that was said to be the most powerful being in the land. It had the ability to control the elements and could manipulate the very fabric of reality. One day, a brave adventurer set out to find the creature and prove its existence. After a long and perilous journey, the adventurer found the creature and was able to capture it. The creature granted the adventurer three wishes, and with them, the adventurer's dreams came true."
-    """
-    openai_res_text = app_utils.clean_res_str(openai_res_text)
+#     openai_res_text = """
+# Edition:
+#     title: "The Mythical Beast"
+#     content: "Long ago, there lived a mythical creature that was said to be the most powerful being in the land. It had the ability to control the elements and could manipulate the very fabric of reality. One day, a brave adventurer set out to find the creature and prove its existence. After a long and perilous journey, the adventurer found the creature and was able to capture it. The creature granted the adventurer three wishes, and with them, the adventurer's dreams came true."
+#     """
+#     openai_res_text = app_utils.clean_res_str(openai_res_text)
 
     
     formated_openai_res = app_utils.get_edition_items_from_openai_res_text(openai_res_text)

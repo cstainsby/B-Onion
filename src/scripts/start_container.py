@@ -59,7 +59,7 @@ def build():
 def run_local():
   # NOTE: I dont have a gpu so I will not enable the option
   os.system(
-    "docker run -p 8000:8000 --name=bonion_container {image_tag}".format(image_tag=image_tag)
+    "docker run -p 3000:3000 --name=bonion_container {image_tag}".format(image_tag=image_tag)
   )
 
 if __name__ == "__main__":

@@ -5,7 +5,10 @@ flask
 flask_restful
 flask-cors 
 h5py
-torch
-torchtext
-ipykernel
-spacy
+# torch
+# torchtext
+# ipykernel
+# spacy
+praw 
+openai
+google-cloud-bigquery

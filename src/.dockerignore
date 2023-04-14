@@ -1,0 +1,8 @@
+transformer_model/
+data/
+notebooks/
+
+docker.py 
+pathing_info.py
+
+google_secret_access.py

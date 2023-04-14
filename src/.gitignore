@@ -1,5 +1,5 @@
 __pycache__
 
-creds/*
+project_info/*
 
 notebooks/.vector_cache
