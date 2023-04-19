@@ -58,6 +58,12 @@ def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
     return praw_inst().submission(id=post_id)
 
+def get_top_replies_to_post_to_depth(praw_inst: PrawInstance, post_id: str, depth=2, limit=10):
+    """Based on a submission, get the top """
+    submission = praw_inst().submission(id=post_id)
+
+
+
 def post_edition_to_reddit(praw_inst: PrawInstance, subreddit_name: str, edition: dict):
     if "title" in edition and "content" in edition:
         praw_inst().subreddit(subreddit_name).submit(
