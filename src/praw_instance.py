@@ -1,6 +1,8 @@
 import praw 
 import csv 
 import os
+import pandas as pd
+import numpy as np
 
 src_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,7 +27,7 @@ class PrawInstance():
         return self.reddit_inst
 
 
-def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7):
+def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7) -> dict:
     """Gets the top posts on a subreddit
         RETURNS: dict of dict"""
     hot_by_sub = {}
@@ -40,7 +42,7 @@ def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
             }
     return hot_by_sub
 
-def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7):
+def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7) -> dict:
     """Gets the top posts on a subreddit
         RETURNS: dict of dict"""
     top_by_sub = {}
@@ -51,9 +53,35 @@ def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
                 "title": post.title,
                 "upvotes": post.ups,
                 "downvotes": post.downs,
-                "selftext": post.selftext
+                "selftext": post.selftext,
+                "numcomments": post.num_comments
             }
     return top_by_sub
+
+def post_dict_to_df(post_dict: dict):
+    """A helper function for working with the post dictionary returned by get_top_by_subreddit and get_hot_by_subreddit"""
+
+    data = []
+
+    for post_id_key, post_values in post_dict.items():
+        post_title = post_values["title"]
+        post_self_text = post_values["selftext"]
+        post_upvotes = post_values["upvotes"]
+        post_num_comments = post_values["numcomments"]
+
+        new_row = [post_id_key, post_title, post_self_text, post_upvotes, post_num_comments]
+
+        data.append(new_row)
+    
+    data = np.array(data)
+    
+    print("full data shape", data.shape)
+
+    post_df = pd.DataFrame(
+        data=data,
+        columns=["reddit_post_id", "post_title", "post_self_text", "upvotes", "num_responses"]
+    )
+    return post_df
 
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
     return praw_inst().submission(id=post_id)

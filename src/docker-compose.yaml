@@ -11,6 +11,6 @@ services:
     environment:
       FLASK_DEBUG: "true"
     env_file:
-      - app_env_vars.env
+      - settings.env
     ports: 
       - "3000:3000"
