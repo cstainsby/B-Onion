@@ -1,7 +1,12 @@
+# because 
+
 FROM python:3.8-slim-buster
 
 # create app folder and copy in code 
 WORKDIR /app
+
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
 
 # install requirements from requirements.txt
 COPY ./requirements.txt ./

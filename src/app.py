@@ -46,7 +46,10 @@ openai.api_key = os.environ.get("openai_access_token")
 @app.route("/", methods=["GET"])
 def home():
     pinned_subreddits =[
-        "python", "news", "amitheasshole"
+        "AskReddit",
+        "amitheasshole",
+        "MaliciousCompliance",
+        "WritingPrompts"
     ]
 
     # this dictionary will be used to store the various 
@@ -201,4 +204,5 @@ def post_to_reddit():
     return res
 
 if __name__ == '__main__':
+    DEBUG_MODE = True if os.environ.get("FLASK_DEBUG") and os.environ.get("FLASK_DEBUG") == "true" else False
     app.run(debug=True, port=3000)

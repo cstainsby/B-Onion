@@ -1,0 +1,16 @@
+# This compose file will be used for working with the code locally
+
+version: '3' 
+services: 
+  app: 
+    build: 
+      context: .
+      target: builder
+    volumes: 
+      - .:/app
+    environment:
+      FLASK_DEBUG: "true"
+    env_file:
+      - app_env_vars.env
+    ports: 
+      - "3000:3000"

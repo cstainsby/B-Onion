@@ -4,5 +4,8 @@ notebooks/
 
 docker.py 
 pathing_info.py
+run_local.py
 
 google_secret_access.py
+
+settings.env

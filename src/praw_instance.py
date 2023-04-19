@@ -7,9 +7,9 @@ src_path = os.path.dirname(os.path.abspath(__file__))
 class PrawInstance():
     def __init__(self) -> None:
 
-        client_id = "pL92jPPhj6EK2yCx-AhHfw"
+        client_id = os.environ.get("praw_client_id")
         client_secret = os.environ.get("praw_client_secret")
-        username = "B-0nion"
+        username = os.environ.get("praw_username")
         password = os.environ.get("praw_password")
         user_agent = "bonion"
 
@@ -39,6 +39,21 @@ def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
                 "selftext": post.selftext
             }
     return hot_by_sub
+
+def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7):
+    """Gets the top posts on a subreddit
+        RETURNS: dict of dict"""
+    top_by_sub = {}
+    if praw_inst and subreddit_name != "":
+        post_obj_lst = [top_post for top_post in praw_inst().subreddit(subreddit_name).top(limit=limit) if not top_post.stickied]
+        for post in post_obj_lst:
+            top_by_sub[post] = {
+                "title": post.title,
+                "upvotes": post.ups,
+                "downvotes": post.downs,
+                "selftext": post.selftext
+            }
+    return top_by_sub
 
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
     return praw_inst().submission(id=post_id)
