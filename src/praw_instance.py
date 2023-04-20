@@ -4,8 +4,10 @@ import os
 import pandas as pd
 import numpy as np
 
-src_path = os.path.dirname(os.path.abspath(__file__))
 
+# ----------------------------------------------------------------------
+#           analysis helper functions
+# ----------------------------------------------------------------------
 class PrawInstance():
     def __init__(self) -> None:
 
@@ -27,6 +29,9 @@ class PrawInstance():
         return self.reddit_inst
 
 
+# ----------------------------------------------------------------------
+#           getter functions for praw data
+# ----------------------------------------------------------------------
 def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limit: int = 7) -> dict:
     """Gets the top posts on a subreddit
         RETURNS: dict of dict"""
@@ -58,6 +63,12 @@ def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
             }
     return top_by_sub
 
+
+
+
+# ----------------------------------------------------------------------
+#           analysis helper functions
+# ----------------------------------------------------------------------
 def post_dict_to_df(post_dict: dict):
     """A helper function for working with the post dictionary returned by get_top_by_subreddit and get_hot_by_subreddit"""
 
@@ -69,7 +80,7 @@ def post_dict_to_df(post_dict: dict):
         post_upvotes = post_values["upvotes"]
         post_num_comments = post_values["numcomments"]
 
-        new_row = [post_id_key, post_title, post_self_text, post_upvotes, post_num_comments]
+        new_row = [str(post_id_key), str(post_title), str(post_self_text), int(post_upvotes), int(post_num_comments)]
 
         data.append(new_row)
     
@@ -83,21 +94,30 @@ def post_dict_to_df(post_dict: dict):
     )
     return post_df
 
+
+def comment_dict_to_df(comment_id: dict):
+    return
+
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
+    """"""
     return praw_inst().submission(id=post_id)
 
-def get_top_replies_to_post_to_depth(praw_inst: PrawInstance, post_id: str, depth=2, limit=10):
-    """Based on a submission, get the top """
-    submission = praw_inst().submission(id=post_id)
 
 
-
+# ----------------------------------------------------------------------
+#           in-app reddit interaction functions
+# ----------------------------------------------------------------------
 def post_edition_to_reddit(praw_inst: PrawInstance, subreddit_name: str, edition: dict):
+    """Post an edition to reddit as a post within a subreddit"""
     if "title" in edition and "content" in edition:
         praw_inst().subreddit(subreddit_name).submit(
             title=edition["title"],
             selftext=edition["content"]
         )
+
+def post_comment_to_post(praw_inst: PrawInstance, post_id: str, comment_content: str):
+    """Post a comment to a given post id"""
+    return
 
 if __name__ == "__main__":
     # run specifically the PrawInstance for functionality check
