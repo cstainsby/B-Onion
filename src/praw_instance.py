@@ -1,4 +1,5 @@
 import praw 
+from praw.models import MoreComments
 import os
 import pandas as pd
 import numpy as np
@@ -110,36 +111,46 @@ def get_top_comments_and_top_replies_by_post_id(praw_inst: PrawInstance, post_id
     comments = post.comments.list()
 
     for i, comment in enumerate(comments):
+        if isinstance(comment, MoreComments) or comment.stickied:
+            continue
         if i >= comment_limit:
             break
         com_id = comment.id
         com_content = comment.body
         com_upvotes = comment.score
+        com_parent_id = comment.parent_id
 
         comments_and_replies_dict[com_id] = {
             "content": com_content,
             "upvotes": com_upvotes,
+            "parent_id": com_parent_id,
             "replies": {}
         }
 
         replies_at_i = comment.replies.list()
         if len(comment.replies) > 0:
             for j, reply in enumerate(replies_at_i):
-                if j >= comment_limit:
+                if isinstance(reply, MoreComments):
+                    continue
+                if j >= reply_limit:
                     break
 
                 rep_id = reply.id
                 rep_content = reply.body
                 rep_upvotes = reply.score
+                rep_parent_id = reply.parent_id
                     
                 comments_and_replies_dict[com_id][rep_id] = {
                     "content": rep_content,
-                    "upvotes": rep_upvotes
+                    "upvotes": rep_upvotes,
+                    "parent_id": rep_parent_id
                 }
     
     return comments_and_replies_dict
 
-
+def get_post_by_id(praw_inst: PrawInstance, post_id: str):
+    """Getter for a reddit post given its post_id"""
+    return praw_inst().submission(id=post_id)
 
 # ----------------------------------------------------------------------
 #           analysis helper functions
@@ -160,8 +171,6 @@ def post_dict_to_df(post_dict: dict):
         data.append(new_row)
     
     data = np.array(data)
-    
-    print("full data shape", data.shape)
 
     post_df = pd.DataFrame(
         data=data,
@@ -170,12 +179,40 @@ def post_dict_to_df(post_dict: dict):
     return post_df
 
 
-def comment_dict_to_df(comment_id: dict):
-    return
+def comment_and_reply_dict_to_df(comments_and_replies_dict: dict):
+    """Helper function for converting dict data structure returned by get_top_comments_and_top_replies_by_post_id
+        into two dataframes, one for comments, one for replies"""
+    
+    comment_data = []
+    reply_data = []
 
-def get_post_by_id(praw_inst: PrawInstance, post_id: str):
-    """Getter for a reddit post given its post_id"""
-    return praw_inst().submission(id=post_id)
+    for comment_id, comment_values in comments_and_replies_dict.items():
+        com_content = comment_values["content"]
+        com_upvotes = comment_values["upvotes"]
+        com_parent_id = comment_values["parent_id"]
+        com_replies = comment_values["replies"]
+
+        new_com_row = [str(comment_id), str(com_parent_id), str(com_content), int(com_upvotes)]
+        comment_data.append(new_com_row)
+
+        for reply_id, reply_values in com_replies:
+            rep_content = reply_values["content"]
+            rep_upvotes = reply_values["upvotes"]
+            rep_parent_id = reply_values["parent_id"]
+
+            new_rep_row = [str(reply_id), str(rep_parent_id), str(rep_content), int(rep_upvotes)]
+            reply_data.append(new_rep_row)
+
+    comments_df = pd.DataFrame(
+        data=comment_data,
+        columns=["comment_id", "parent_id", "content", "upvotes"]
+    )
+    replies_df = pd.DataFrame(
+        data=reply_data,
+        columns=["reply_id", "parent_id", "content", "upvotes"]
+    )
+
+    return comments_df, replies_df
 
 
 
