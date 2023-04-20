@@ -1,5 +1,4 @@
 import praw 
-import csv 
 import os
 import pandas as pd
 import numpy as np
@@ -63,6 +62,82 @@ def get_top_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
             }
     return top_by_sub
 
+def get_top_comments_by_post_id(praw_inst: PrawInstance, post_id: str, comment_limit: int = 5):
+    """Getter for a set number of comments 
+        RETURNS dict {
+            comment_id: {
+                content,
+                upvotes
+            }
+        }"""
+    comments_and_replies_dict = {}
+
+    post = get_post_by_id(praw_inst, post_id)
+    comments = post.comments 
+
+    for i, comment in enumerate(comments):
+        if i >= comment_limit:
+            break
+        com_id = comment.id
+        com_content = comment.body
+        com_upvotes = comment.score
+
+        comments_and_replies_dict[com_id] = {
+            "content": com_content,
+            "upvotes": com_upvotes
+        }
+    
+    return comments_and_replies_dict
+
+
+def get_top_comments_and_top_replies_by_post_id(praw_inst: PrawInstance, post_id: str, comment_limit: int = 5, reply_limit: int = 5):
+    """Getter for a set number of comments 
+        RETURNS dict {
+            comment_id: {
+                content,
+                upvotes,
+                replies: {
+                    reply_id: {
+                        content,
+                        upvotes
+                    }
+                }
+            }
+        }"""
+    comments_and_replies_dict = {}
+
+    post = get_post_by_id(praw_inst, post_id)
+    comments = post.comments.list()
+
+    for i, comment in enumerate(comments):
+        if i >= comment_limit:
+            break
+        com_id = comment.id
+        com_content = comment.body
+        com_upvotes = comment.score
+
+        comments_and_replies_dict[com_id] = {
+            "content": com_content,
+            "upvotes": com_upvotes,
+            "replies": {}
+        }
+
+        replies_at_i = comment.replies.list()
+        if len(comment.replies) > 0:
+            for j, reply in enumerate(replies_at_i):
+                if j >= comment_limit:
+                    break
+
+                rep_id = reply.id
+                rep_content = reply.body
+                rep_upvotes = reply.score
+                    
+                comments_and_replies_dict[com_id][rep_id] = {
+                    "content": rep_content,
+                    "upvotes": rep_upvotes
+                }
+    
+    return comments_and_replies_dict
 
 
 
@@ -99,7 +174,7 @@ def comment_dict_to_df(comment_id: dict):
     return
 
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
-    """"""
+    """Getter for a reddit post given its post_id"""
     return praw_inst().submission(id=post_id)
 
 
