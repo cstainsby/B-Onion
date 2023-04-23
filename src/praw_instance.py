@@ -128,23 +128,24 @@ def get_top_comments_and_top_replies_by_post_id(praw_inst: PrawInstance, post_id
         }
 
         replies_at_i = comment.replies.list()
-        if len(comment.replies) > 0:
-            for j, reply in enumerate(replies_at_i):
-                if isinstance(reply, MoreComments):
-                    continue
-                if j >= reply_limit:
-                    break
+        # print("replies at i", replies_at_i)
+        for j, reply in enumerate(replies_at_i):
+            if isinstance(reply, MoreComments):
+                continue
+            if j >= reply_limit:
+                break
 
-                rep_id = reply.id
-                rep_content = reply.body
-                rep_upvotes = reply.score
-                rep_parent_id = reply.parent_id
-                    
-                comments_and_replies_dict[com_id][rep_id] = {
-                    "content": rep_content,
-                    "upvotes": rep_upvotes,
-                    "parent_id": rep_parent_id
-                }
+            rep_id = reply.id
+            rep_content = reply.body
+            rep_upvotes = reply.score
+            rep_parent_id = reply.parent_id
+                
+            comments_and_replies_dict[com_id]["replies"][rep_id] = {
+                "content": rep_content,
+                "upvotes": rep_upvotes,
+                "parent_id": rep_parent_id
+            }
+            # print("added reply", comments_and_replies_dict[com_id][rep_id])
     
     return comments_and_replies_dict
 
@@ -195,7 +196,7 @@ def comment_and_reply_dict_to_df(comments_and_replies_dict: dict):
         new_com_row = [str(comment_id), str(com_parent_id), str(com_content), int(com_upvotes)]
         comment_data.append(new_com_row)
 
-        for reply_id, reply_values in com_replies:
+        for reply_id, reply_values in dict(com_replies).items():
             rep_content = reply_values["content"]
             rep_upvotes = reply_values["upvotes"]
             rep_parent_id = reply_values["parent_id"]
