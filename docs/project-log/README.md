@@ -33,3 +33,6 @@ Interesting video talking about Stanford's Alpaca. This language model, as they 
 [Link](https://www.youtube.com/watch?v=xslW5sQOkC8&list=LL&index=1) to video.
 
 It might be worth looking into some way to set up my project similar to thiers in order to get better performance out of my model. With their setup I can use chatGPT to train my model rather than create my own RL model.
+
+# 4/25
+As I work through this project, its goals are beginning to shift towards a more exploratory project. To use chatgpt for posts I would need to find a subreddit which works primarily off of text. I have settled on r/AITA due to its structured text data. But because a lot of subreddit's don't allow bots to post(if they find out) I have to be careful how much I'm allowing mine to post to collect data. This has slowed down my analysis of performance a bit. 
