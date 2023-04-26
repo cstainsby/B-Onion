@@ -33,15 +33,26 @@ class PostCommentData():
     def read_data(self) -> pd.DataFrame:
         return pd.read_csv(self.data_path)
 
-    def store_data(self, classification_df: pd.DataFrame) -> None:
+    def store_data_for_training(self, classification_df: pd.DataFrame) -> None:
         """Stores a pandas df into a csv, this pandas df should be the same shape/same cols as the stored data
             
         PARAMS:
             write_type(str): tells how to store the data"""
-        out
+        out_data = pd.DataFrame({
+            "prompt": [],
+            "completion": []
+        })
 
-        for row in classification_df.iterrows():
-            
+        for _, row in classification_df.iterrows():
+            title = row["post_title"]
+            content = row["post_content"]
+            classification = row["class"]
 
+            prompt = "title: {}\ncontent: {}".format(title, content)
+            completion = "{}".format(classification)
+
+            out_data.loc[len(out_data.index)] = [prompt, completion]
+
+        out_data.to_csv(self.data_path, index=False)
 
         
