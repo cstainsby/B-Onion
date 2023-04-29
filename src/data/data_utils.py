@@ -35,3 +35,19 @@ def parse_class_label_from_AITA_comment(comment: str):
     matches = [str(match[1]).lower() for match in matches]
 
     return most_common_vote(matches)
+
+def parse_post_class_from_AITA_post_title(post_title: str):
+    """Each post from this subreddit is required to have a post classification of either 
+        - AITA (am I the asshole)
+        - WIBTA (would I be the asshole)
+        
+        This function will parse that post label out"""
+    
+    pattern = r"(^|\b)([aA][iI][tT][aA]|[wW][iI][bB][tT][aA])(\b|$)"
+
+    matches = re.findall(pattern, post_title)
+
+    # extract class label from tuple
+    matches = [str(match[1]).lower() for match in matches]
+
+    return most_common_vote(matches)

@@ -1,0 +1,4 @@
+// Shows which question classifications go to which comment classifications based on user voting
+digraph "Classification Graph" {
+	A [label="test node"]
+}

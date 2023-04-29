@@ -1,0 +1,171 @@
+{
+  "data": [
+    {
+      "created_at": 1682650622,
+      "fine_tuned_model": "ada:ft-personal-2023-04-28-03-00-12",
+      "hyperparams": {
+        "batch_size": 1,
+        "learning_rate_multiplier": 0.1,
+        "n_epochs": 4,
+        "prompt_loss_weight": 0.01
+      },
+      "id": "ft-22EPzL7Ie2u0wYVXypqGv0iP",
+      "model": "ada",
+      "object": "fine-tune",
+      "organization_id": "org-Bejc8ZjbgRorDj7rrhKIV5u5",
+      "result_files": [
+        {
+          "bytes": 38069,
+          "created_at": 1682650813,
+          "filename": "compiled_results.csv",
+          "id": "file-I4Pyteh9nQHFGHebiEhPyWAI",
+          "object": "file",
+          "purpose": "fine-tune-results",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "status": "succeeded",
+      "training_files": [
+        {
+          "bytes": 584597,
+          "created_at": 1682650622,
+          "filename": "../data/store/post_comment_class_prepared_train.jsonl",
+          "id": "file-WGAEguD5SUIwjZZoXwS8PR98",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "updated_at": 1682650814,
+      "validation_files": []
+    },
+    {
+      "created_at": 1682651351,
+      "fine_tuned_model": "ada:ft-personal-2023-04-28-03-12-18",
+      "hyperparams": {
+        "batch_size": 1,
+        "learning_rate_multiplier": 0.1,
+        "n_epochs": 4,
+        "prompt_loss_weight": 0.01
+      },
+      "id": "ft-r6PKv5ePloAkumTZC27XpCEA",
+      "model": "ada",
+      "object": "fine-tune",
+      "organization_id": "org-Bejc8ZjbgRorDj7rrhKIV5u5",
+      "result_files": [
+        {
+          "bytes": 43675,
+          "created_at": 1682651539,
+          "filename": "compiled_results.csv",
+          "id": "file-XOphw8CMzB7wLyUFmpszurLW",
+          "object": "file",
+          "purpose": "fine-tune-results",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "status": "succeeded",
+      "training_files": [
+        {
+          "bytes": 584597,
+          "created_at": 1682650622,
+          "filename": "../data/store/post_comment_class_prepared_train.jsonl",
+          "id": "file-WGAEguD5SUIwjZZoXwS8PR98",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "updated_at": 1682651540,
+      "validation_files": [
+        {
+          "bytes": 160962,
+          "created_at": 1682651350,
+          "filename": "../data/store/post_comment_class_prepared_valid.jsonl",
+          "id": "file-c3eqQUP5mMBU36CmH1KXnuYW",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ]
+    },
+    {
+      "created_at": 1682652920,
+      "fine_tuned_model": null,
+      "hyperparams": {
+        "batch_size": null,
+        "classification_n_classes": 7,
+        "compute_classification_metrics": true,
+        "learning_rate_multiplier": null,
+        "n_epochs": 4,
+        "prompt_loss_weight": 0.01
+      },
+      "id": "ft-lU8CAaR0th3O6Ek2sCumkeN2",
+      "model": "ada",
+      "object": "fine-tune",
+      "organization_id": "org-Bejc8ZjbgRorDj7rrhKIV5u5",
+      "result_files": [],
+      "status": "failed",
+      "training_files": [
+        {
+          "bytes": 584597,
+          "created_at": 1682650622,
+          "filename": "../data/store/post_comment_class_prepared_train.jsonl",
+          "id": "file-WGAEguD5SUIwjZZoXwS8PR98",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "updated_at": 1682652925,
+      "validation_files": [
+        {
+          "bytes": 160962,
+          "created_at": 1682651350,
+          "filename": "../data/store/post_comment_class_prepared_valid.jsonl",
+          "id": "file-c3eqQUP5mMBU36CmH1KXnuYW",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ]
+    },
+    {
+      "created_at": 1682707340,
+      "fine_tuned_model": null,
+      "hyperparams": {
+        "batch_size": null,
+        "learning_rate_multiplier": null,
+        "n_epochs": 4,
+        "prompt_loss_weight": 0.01
+      },
+      "id": "ft-CBVs1yK8M8ZgwB4Nv8CrHcx4",
+      "model": "davinci",
+      "object": "fine-tune",
+      "organization_id": "org-Bejc8ZjbgRorDj7rrhKIV5u5",
+      "result_files": [],
+      "status": "failed",
+      "training_files": [
+        {
+          "bytes": 6770692,
+          "created_at": 1682707340,
+          "filename": "post_and_class_to_gen_text_prepared.jsonl",
+          "id": "file-wuzVi45nEWWAM76qvDB4puYN",
+          "object": "file",
+          "purpose": "fine-tune",
+          "status": "processed",
+          "status_details": null
+        }
+      ],
+      "updated_at": 1682709659,
+      "validation_files": []
+    }
+  ],
+  "object": "list"
+}
