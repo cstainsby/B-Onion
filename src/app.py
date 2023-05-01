@@ -1,6 +1,8 @@
 import os
 import json 
 import openai
+from pathlib import Path
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, Response
 
 # from google_secret_access import access_secret_version
@@ -21,20 +23,17 @@ import praw_instance as praw_instance
 #       
 
 
+app_root_path = Path(__file__).absolute().parent 
+local_env_path = app_root_path / Path("./settings.env")
 
-# app filepath
-# backend_path = os.path.dirname(os.path.realpath(__file__))
+# if there is a settings.env file to reach out to for importing environment variables
+#   do it 
+# this will only happen in local builds
+print(local_env_path.exists())
+if local_env_path.exists():
+    print("loading environment variables from local file")
+    load_dotenv(dotenv_path=local_env_path)
 
-# static_frontend_filepath = backend_path + "/static"
-# if not os.path.exists(static_frontend_filepath):
-#     static_frontend_filepath = backend_path + "/templates"
-
-# def get_cred_config(secret_id):
-#     secret = os.environ.get("CLOUD_SQL_CREDENTIALS_SECRET")
-#     if secret:
-#         return json.loads(secret)
-
-# os.environ.get("praw_client_secret")
 
 
 app = Flask(__name__)
@@ -43,8 +42,15 @@ praw_inst = praw_instance.PrawInstance()
 openai_model_def = "text-davinci-003"
 openai.api_key = os.environ.get("openai_access_token")
 
-@app.route("/", methods=["GET"])
-def home():
+
+
+
+# ---------------------------------------------------------------------------
+#   GET endpoints
+# ---------------------------------------------------------------------------
+
+@app.route("/subreddit/amitheasshole", methods=["GET"])
+def browse_amitheasshole():
     pinned_subreddits =[
         "AskReddit",
         "amitheasshole",
@@ -63,48 +69,16 @@ def home():
     return render_template("home.html", trending_dict=trending_dict)
 
 
-# @app.route("/openai/init", methods=["POST"])
-# def initialize_open_ai_prompting():
-#     # this message will prime the ongoing openai session for 
-#     prompt_structure_init_message = """
-#         Your job will be to help the user create text based on the prompts they provide.  
+@app.route("/", methods=["GET"])
+def home():
+    return render_template("project_overview.html")
 
-#         An Edition will be defined as
-#             Edition:
-#                 id: an integer
-#                 title: a string title for the edition
-#                 content: a string of content for the edition
 
-#         For the following prompts, they will all be in the form 
-#             current_prompt: 
-#                 a string describing the instructions,
 
-#             referenced_editions:
-#                 a list of editions, each with the above described contents
-#                 Note that this can be empty, if there is no referenced_editions,
-#                     you can assume that it is empty
-#                 This will be used by you to gain context related to the users 
-#                     current prompt.
 
-                
-#         Your text responses should be formatted to include
-#             an Edition:
-#                 should be the the same format listed above, without an id    
-
-#         Note that your responses should only ever contain formatted Edition's, nothing else.        
-#     """
-
-#     openai_res = openai.Completion.create(
-#         model=openai_model_def,
-#         prompt=prompt_structure_init_message,
-#         temperature=0,
-#         max_tokens=5)
-    
-#     print("init prompt res", openai_res)
-
-#     res = Response(json.dumps(openai_res), mimetype="application/json")
-#     return res
-
+# ---------------------------------------------------------------------------
+#   POST endpoints
+# ---------------------------------------------------------------------------
 
 @app.route("/openai/prompt", methods=["POST"])
 def send_open_ai_prompt():

@@ -2,7 +2,7 @@
   "data": [
     {
       "created_at": 1682650622,
-      "fine_tuned_model": "ada:ft-personal-2023-04-28-03-00-12",
+      "fine_tuned_model": "",
       "hyperparams": {
         "batch_size": 1,
         "learning_rate_multiplier": 0.1,

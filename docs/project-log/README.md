@@ -36,3 +36,28 @@ It might be worth looking into some way to set up my project similar to thiers i
 
 # 4/25
 As I work through this project, its goals are beginning to shift towards a more exploratory project. To use chatgpt for posts I would need to find a subreddit which works primarily off of text. I have settled on r/AITA due to its structured text data. But because a lot of subreddit's don't allow bots to post(if they find out) I have to be careful how much I'm allowing mine to post to collect data. This has slowed down my analysis of performance a bit. 
+
+
+
+
+
+# What is the end goal
+I want to be able to generate a comment to an r/AITA post. This requires from now on that I finish. 
+- Some sort of multiclass text classifier for predicting comment class labels 
+- Some sort of text completion, most likely with chat GPT text completions
+
+After being able to make these posts I want to be able to post to r/AITA. I will need to be able to use my praw instance to post. This should already be functional.
+
+Next I need some mechanism to collect the posted data. I will use google cloud functions to setup a chron job to take place roughly 24 hours after I have posted to collect.
+
+I want to show off my performance. This will require that I make a dashboard for model performance. 
+
+On the webpage I need: 
+- A browsable menu for navigating AITA posts
+- 
+
+
+## So listed out I need to:
+- classification model
+- completion model
+- setup endpoint for on post make chron job

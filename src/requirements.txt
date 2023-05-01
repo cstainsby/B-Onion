@@ -12,3 +12,4 @@ h5py
 praw 
 openai
 google-cloud-bigquery
+dotenv

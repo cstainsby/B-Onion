@@ -1,4 +1,12 @@
-// Shows which question classifications go to which comment classifications based on user voting
+// Shows which comment classifications go to which comment classifications based on user voting
 digraph "Classification Graph" {
-	A [label="test node"]
+	A [label=YTA]
+	B [label=YWBTA]
+	C [label=NTA]
+	D [label=YWNBTA]
+	E [label=ESH]
+	F [label=NAH]
+	G [label=INFO]
+	H [label=AITA]
+	I [label=WIBTA]
 }

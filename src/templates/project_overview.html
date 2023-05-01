@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+<!-- Styling -->
+{% block additional_style %}
+<style>
+  #main-container {
+    padding: 64px;
+  }
+  #main-col > * {
+    margin: 24px;
+  }
+  .carousel-item {
+    padding-right: 128px;
+    padding-left: 128px;
+  }
+  #loading-spinner {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %} 
+  <script src="{{ url_for('static', filename='/js/requests.js') }}"></script>
+  <script src="{{ url_for('static', filename='/js/script.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+  <div id="main-container" class="container-fluid">
+    <div id="header-row" class="row text-center">
+      <h2>Cole's Subreddit Analysis Data Project</h2>
+    </div>
+    <div id="main-row" class="row">
+      <div id="main-col" class="col">
+        
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
