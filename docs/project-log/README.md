@@ -41,7 +41,7 @@ As I work through this project, its goals are beginning to shift towards a more 
 
 
 
-# What is the end goal
+## What is the end goal
 I want to be able to generate a comment to an r/AITA post. This requires from now on that I finish. 
 - Some sort of multiclass text classifier for predicting comment class labels 
 - Some sort of text completion, most likely with chat GPT text completions
@@ -57,7 +57,14 @@ On the webpage I need:
 - 
 
 
-## So listed out I need to:
+### So listed out I need to:
 - classification model
 - completion model
 - setup endpoint for on post make chron job
+
+# 5/2 
+Unfortunatly openai says my credits have expired so I'm no longer able to use their models, I'm going to have to come up with a quick solution to this.
+
+I'm looking into using huggingface for generating text and text classification
+- [gen text](https://huggingface.co/docs/transformers/generation_strategies)
+- [multi class](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/BERT/Fine_tuning_BERT_(and_friends)_for_multi_label_text_classification.ipynb)
