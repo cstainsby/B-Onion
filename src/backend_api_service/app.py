@@ -1,13 +1,12 @@
 import os
 import json 
-import openai
 from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, Response
 
 # from google_secret_access import access_secret_version
-import app_utils
-import praw_instance as praw_instance
+import backend_api_service.app_utils as app_utils
+import backend_api_service.praw_instance as praw_instance
 # import transformer_model.model as model
 # import transformer_model.model_utils as model_utils
 

@@ -1,7 +1,3 @@
 __pycache__
 
 project_info/*
-
-notebooks/.vector_cache
-
-settings.env

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ModelService</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f7f7f7;
+                color: #333;
+                margin: 0;
+                padding: 0;
+              }
+              
+              h1 {
+                font-size: 36px;
+                font-weight: bold;
+                text-align: center;
+                margin-top: 50px;
+              }
+              
+              section {
+                max-width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                margin-bottom: 30px;
+              }
+              
+              h2 {
+                font-size: 24px;
+                font-weight: bold;
+                margin-top: 0;
+              }
+              
+              ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+              }
+              
+              li {
+                margin-bottom: 10px;
+              }
+              
+              button {
+                font-size: 16px;
+                font-weight: bold;
+                background-color: #007bff;
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+              }
+              
+              button:hover {
+                background-color: #0062cc;
+              }
+              
+              form {
+                max-width: 500px;
+                margin: 0 auto;
+                padding: 20px;
+                margin-bottom: 30px;
+              }
+              
+              label {
+                display: block;
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+              
+              input[type="text"],
+              select {
+                font-size: 16px;
+                padding: 10px;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                width: 100%;
+                max-width: 400px; /* add this line to limit the input element width */
+                box-sizing: border-box; /* add this line to make sure the max-width includes padding and border */
+                margin-bottom: 20px;
+              }
+              
+              input[type="submit"] {
+                font-size: 16px;
+                font-weight: bold;
+                background-color: #007bff;
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+              }
+              
+              input[type="submit"]:hover {
+                background-color: #0062cc;
+              }              
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to my Model Service App!</h1>
+        <br>
+        <section>
+            <h2>Current Fine-Tuned Models</h2>
+            <ul>
+                {% for model_id in model_ids %}
+                    <li><button onclick="window.location.href='/models/{{ model_id }}'">{{ model_id }}</button></li>
+                {% endfor %}
+            </ul>
+            <br>
+        </section>
+        <section>
+            <h2>Make Another Model</h2>
+            <form action="/create_model" method="POST">
+                <label for="model_name">Model Name:</label>
+                <input type="text" name="model_name" id="model_name">
+                <label for="model_type">Model Type:</label>
+                <select id="model_type" name="model_type">
+                    <option value="Text Generation">Text Generation</option>
+                    <option value="Text Classification">Text Classification</option>
+                </select>
+                <input type="submit" value="Create Model">
+            </form>
+        </section>
+    </body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Model Details</title>
+    <style>
+      /* Add your CSS styles here */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+
+      .confusion-matrix {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        grid-template-rows: repeat(auto-fill, minmax(60px, 1fr));
+        gap: 4px;
+        margin-bottom: 20px;
+      }
+
+      .confusion-matrix-cell {
+        border: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      .confusion-matrix-header {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      
+      h1 {
+        font-size: 36px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 50px;
+      }
+      
+      section {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+      }
+      
+      h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-top: 0;
+      }
+      
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      li {
+        margin-bottom: 10px;
+      }
+      
+      button {
+        font-size: 16px;
+        font-weight: bold;
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+      
+      button:hover {
+        background-color: #0062cc;
+      }
+      
+      form {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+      
+      label {
+        display: block;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      
+      input[type="text"],
+      select {
+        font-size: 16px;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+        max-width: 400px; /* add this line to limit the input element width */
+        box-sizing: border-box; /* add this line to make sure the max-width includes padding and border */
+        margin-bottom: 20px;
+      }
+      
+      input[type="submit"] {
+        font-size: 16px;
+        font-weight: bold;
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+      
+      input[type="submit"]:hover {
+        background-color: #0062cc;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <h1>Model Details</h1>
+
+    <section>
+        <h2>Model ID: <span id="model-id">{{ model_id }}</span></h2>
+        <p>Type: <span id="model-type">...</span></p>
+        <p>Number of Training Examples: <span id="num-training-examples">...</span></p>
+        <p>Number of Testing Examples: <span id="num-testing-examples">...</span></p>
+        <p>Write Description here</p>
+    </section>
+
+    <section>
+        <h2>Data Shape:</h2>
+        <table>
+        <thead>
+            <tr>
+            <th>Column Name</th>
+            <th>Data Type</th>
+            </tr>
+        </thead>
+        <tbody id="training-data">
+            <!-- Rows will be added dynamically with JavaScript -->
+        </tbody>
+        </table>
+    </section>
+    
+    <section>
+        <div id="evaluation-metrics" style="display: none;">
+            <h2>Evaluation Metrics</h2>
+            <ul>
+                <li>Perplexity: <span id="perplexity">...</span></li>
+                <li>BLEU Score: <span id="bleu-score">...</span></li>
+                <li>ROUGE: <span id="rouge">...</span></li>
+                <li>SelfBLEU: <span id="selfbleu">...</span></li>
+            </ul>
+        </div>
+      
+        <div id="confusion-matrix" style="display: none;">
+            <h2>Confusion Matrix</h2>
+            <div class="confusion-matrix">
+                <div class="confusion-matrix-header"></div>
+                <div class="confusion-matrix-header">Predicted Class</div>
+                <div class="confusion-matrix-header">Actual Class</div>
+                <!-- Cells will be added dynamically with JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>Try it out</h2>
+        <p>Explain how it works</p>
+
+        <label for="try_model_prompt">Prompt:</label>
+        <input type="text" name="try_model_prompt" id="try_model_prompt" placeholder="Enter your prompt here">
+    </section>
+
+    <script>
+      // Replace the placeholders (...) with the actual values using JavaScript
+      const modelType = "Text Generation";
+      const trainingData = [
+        { columnName: "Text", dataType: "text" },
+        { columnName: "Label", dataType: "text" },
+      ];
+      const numTrainingExamples = 1000;
+      const numTestingExamples = 10;
+      const evaluationMetrics = {
+        perplexity: 5.67,
+        bleuScore: 0.83,
+        rouge: 0.68,
+        selfbleu: 0.75,
+    };
+    const confusionMatrix = [
+      [20, 5, 3],
+      [6, 18, 2],
+      [2, 4, 19],
+    ];
+    const classNames = ["Class A", "Class B", "Class C"];
+  
+    // Set the text content of the elements
+    document.getElementById("model-type").textContent = modelType;
+    const trainingDataBody = document.getElementById("training-data");
+    for (const { columnName, dataType } of trainingData) {
+      const row = document.createElement("tr");
+      const nameCell = document.createElement("td");
+      const typeCell = document.createElement("td");
+      nameCell.textContent = columnName;
+      typeCell.textContent = dataType;
+      row.appendChild(nameCell);
+      row.appendChild(typeCell);
+      trainingDataBody.appendChild(row);
+    }
+    document.getElementById("num-training-examples").textContent =
+      numTrainingExamples;
+    document.getElementById("num-testing-examples").textContent =
+      numTestingExamples;
+
+    // conditional rendering for type of model
+    if (modelType === "Text Generation") {
+      // Show evaluation metrics
+      document.getElementById("evaluation-metrics").style.display = "block";
+      document.getElementById("perplexity").textContent =
+        evaluationMetrics.perplexity;
+      document.getElementById("bleu-score").textContent =
+        evaluationMetrics.bleuScore;
+      document.getElementById("rouge").textContent = evaluationMetrics.rouge;
+      document.getElementById("selfbleu").textContent =
+        evaluationMetrics.selfbleu;
+    } else if (modelType === "Text Classification") {
+      // Show confusion matrix
+      document.getElementById("confusion-matrix").style.display = "block";
+      const matrix = document.getElementById("confusion-matrix");
+      // Add headers
+      const headerRow = document.createElement("div");
+      headerRow.className = "confusion-matrix-row";
+      headerRow.appendChild(document.createElement("div"));
+      for (const className of classNames) {
+        const headerCell = document.createElement("div");
+        headerCell.className = "confusion-matrix-header";
+        headerCell.textContent = className;
+        headerRow.appendChild(headerCell);
+      }
+      matrix.appendChild(headerRow);
+      // Add rows
+      for (let i = 0; i < confusionMatrix.length; i++) {
+        const row = document.createElement("div");
+        row.className = "confusion-matrix-row";
+        const actualCell = document.createElement("div");
+        actualCell.className = "confusion-matrix-header";
+        actualCell.textContent = classNames[i];
+        row.appendChild(actualCell);
+        for (let j = 0; j < confusionMatrix[i].length; j++) {
+          const cell = document.createElement("div");
+          cell.className = "confusion-matrix-cell";
+          cell.textContent = confusionMatrix[i][j];
+          row.appendChild(cell);
+        }
+        matrix.appendChild(row);
+      }
+      // Add column headers
+      const headerCell = document.createElement("div");
+      headerCell.className = "confusion-matrix-header";
+      headerCell.textContent = "Actual Class";
+      matrix.appendChild(headerCell);
+      for (const className of classNames) {
+        const headerCell = document.createElement("div");
+        headerCell.className = "confusion-matrix-header";
+        headerCell.textContent = className;
+        matrix.appendChild(headerCell);
+      }
+    }
+  </script>
+  
