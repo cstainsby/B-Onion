@@ -4,6 +4,27 @@
   head {text-align: center;}
   body {
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+  }
+    
+  h1 {
+    font-size: 2.5rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .list-group-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  a {
+    color: #212529;
+    text-decoration: none;
+  }
+  
+  a:hover {
+    color: #212529;
+    text-decoration: none;
   }
 </style>
 {% block additional_style %}
@@ -20,107 +41,7 @@
 <body>
   <!-- bootstrap js link -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-  <!-- d3 js link -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-
-  <!-- Nav bar -->
-  <nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">RedditAnalysis</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">r/AmITheAsshole</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">ModelPerformance</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-  
-  
-  
+    
   {% block content %} {% endblock %}
-
-  {% block scripts %}{% endblock %} 
-
-  <!-- <script>
-    const initializeOpenAI = async () => {
-        const url = '/openai/init';
-        const data = { };
-        const options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        };
-        
-        try {
-          const res = await fetch(url, options);
-          const result = await res.json();
-          return result.openai_response;
-        } catch (error) {
-          console.error(error);
-        }
-        return "";
-      }
-      
-      const sendPromptToOpenAI = async (promptText, editions) => {
-        const url = '/openai/prompt';
-        const data = { 
-          prompt_contents: promptText,
-          editions: editions
-        };
-        const options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        };
-        
-        try {
-          const res = await fetch(url, options);
-          const result = await res.json();
-          return result;
-        } catch (error) {
-          console.error(error);
-        }
-        return "";
-      }
-      
-      const postEditionToReddit = async (subreddit, edition) => {
-        console.log("subreddit", subreddit, "edition", edition);
-        const url = '/reddit/post';
-        const data = {
-          subreddit_name: subreddit,
-          title: edition.title,
-          content: edition.content
-        }
-        const options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
-        };
-      
-        try {
-          const res = await fetch(url, options);
-          const result = await res.json();
-          return result;
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      
-    </script> -->
-
 </body>
 </html>

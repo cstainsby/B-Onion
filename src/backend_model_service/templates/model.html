@@ -102,6 +102,8 @@
         max-width: 500px;
         margin: 0 auto;
         padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         margin-bottom: 30px;
       }
       
@@ -146,32 +148,21 @@
     <h1>Model Details</h1>
 
     <section>
-        <h2>Model ID: <span id="model-id">{{ model_id }}</span></h2>
-        <p>Type: <span id="model-type">...</span></p>
-        <p>Number of Training Examples: <span id="num-training-examples">...</span></p>
-        <p>Number of Testing Examples: <span id="num-testing-examples">...</span></p>
-        <p>Write Description here</p>
+        <h2>Model Name: <span id="model-name">{{ model_details.model_name }}</span></h2>
+        <p>Model ID: <span id="model-id">{{ model_details.id }}</span></p>
+        <p>Type: <span id="model-type">{{ model_details.model_type }}</span></p>
+        <p><b>Description:</b></p>
+        <p>{{ model_details.model_desc }}</p>
     </section>
 
-    <section>
-        <h2>Data Shape:</h2>
-        <table>
-        <thead>
-            <tr>
-            <th>Column Name</th>
-            <th>Data Type</th>
-            </tr>
-        </thead>
-        <tbody id="training-data">
-            <!-- Rows will be added dynamically with JavaScript -->
-        </tbody>
-        </table>
-    </section>
+    
     
     <section>
         <div id="evaluation-metrics" style="display: none;">
-            <h2>Evaluation Metrics</h2>
+            <h2>Evaluation Metrics</h2>        
             <ul>
+                <li>Number of Training Examples: <span id="num-training-examples">...</span></li>
+                <li>Number of Testing Examples: <span id="num-testing-examples">...</span></li>
                 <li>Perplexity: <span id="perplexity">...</span></li>
                 <li>BLEU Score: <span id="bleu-score">...</span></li>
                 <li>ROUGE: <span id="rouge">...</span></li>
@@ -190,18 +181,21 @@
         </div>
     </section>
 
-    <section>
+    <form action="">
         <h2>Try it out</h2>
         <p>Explain how it works</p>
 
         <label for="try_model_prompt">Prompt:</label>
         <input type="text" name="try_model_prompt" id="try_model_prompt" placeholder="Enter your prompt here">
-    </section>
+
+        <input type="submit" value="Go">
+
+        <p id="try_model_output"></p>
+    </form>
 
     <script>
       // Replace the placeholders (...) with the actual values using JavaScript
-      const modelType = "Text Generation";
-      const trainingData = [
+     const trainingData = [
         { columnName: "Text", dataType: "text" },
         { columnName: "Label", dataType: "text" },
       ];
@@ -221,8 +215,7 @@
     const classNames = ["Class A", "Class B", "Class C"];
   
     // Set the text content of the elements
-    document.getElementById("model-type").textContent = modelType;
-    const trainingDataBody = document.getElementById("training-data");
+    /*const trainingDataBody = document.getElementById("training-data");
     for (const { columnName, dataType } of trainingData) {
       const row = document.createElement("tr");
       const nameCell = document.createElement("td");
@@ -232,14 +225,14 @@
       row.appendChild(nameCell);
       row.appendChild(typeCell);
       trainingDataBody.appendChild(row);
-    }
+    }*/
     document.getElementById("num-training-examples").textContent =
       numTrainingExamples;
     document.getElementById("num-testing-examples").textContent =
       numTestingExamples;
 
     // conditional rendering for type of model
-    if (modelType === "Text Generation") {
+    if ("{{ model_details.model_type }}" === "Text Generation") {
       // Show evaluation metrics
       document.getElementById("evaluation-metrics").style.display = "block";
       document.getElementById("perplexity").textContent =
@@ -249,7 +242,7 @@
       document.getElementById("rouge").textContent = evaluationMetrics.rouge;
       document.getElementById("selfbleu").textContent =
         evaluationMetrics.selfbleu;
-    } else if (modelType === "Text Classification") {
+    } else if ("{{ model_details.model_type }}" === "Text Classification") {
       // Show confusion matrix
       document.getElementById("confusion-matrix").style.display = "block";
       const matrix = document.getElementById("confusion-matrix");

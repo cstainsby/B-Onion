@@ -4,9 +4,8 @@ import os
 import pandas as pd
 import numpy as np
 
-
 # ----------------------------------------------------------------------
-#           analysis helper functions
+#           praw instance
 # ----------------------------------------------------------------------
 class PrawInstance():
     def __init__(self) -> None:
@@ -230,7 +229,10 @@ def post_edition_to_reddit(praw_inst: PrawInstance, subreddit_name: str, edition
 
 def post_comment_to_post(praw_inst: PrawInstance, post_id: str, comment_content: str):
     """Post a comment to a given post id"""
-    return
+    post = praw_inst().submission(id=post_id)
+    post.reply(comment_content)
+
+
 
 if __name__ == "__main__":
     # run specifically the PrawInstance for functionality check

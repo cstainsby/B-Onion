@@ -17,26 +17,6 @@ class TextGenModelManager():
 
         self.model_output_dir = "saved_models/text_gen"
 
-    def get_existing_fine_tuned_models(self) -> list:
-        """
-        Returns a list of all text gen fine-tuned models.
-        
-        RETURNS:
-            selected_model: list
-                a list of all saved model names
-        """
-        fine_tune_ids = []
-
-        # Get all filenames in the directory
-        filenames = os.listdir(self.model_output_dir)
-
-        # Iterate over the filenames and split them into their base names and extensions
-        for filename in filenames:
-            basename, extension = os.path.splitext(filename)
-            fine_tune_ids.append(basename)
-            
-        return fine_tune_ids
-
     
     def get_model_from_path(self, model_fname: str = ""):
         """
@@ -91,7 +71,7 @@ class TextGenModelManager():
 
         return decoded_outputs_list
     
-    def fine_tune_and_save(self, model_fname: str, train_dataset, output_dir, num_train_epochs=1) -> str:
+    def fine_tune_and_save(self, model_fname: str, train_dataset, tokenizer, output_dir, num_train_epochs=1) -> str:
         """
         Fine-tune the GPT-2 model on a given dataset and save the fine-tuned model as a .pt file.
         
@@ -124,17 +104,18 @@ class TextGenModelManager():
             model=self.model,
             args=training_args,
             train_dataset=train_dataset,
+            tokenizer=tokenizer
         )
 
         # fine-tune the model
         trainer.train() 
 
+        self.save_model(model_fname, trainer)
+    
+    def save_model(self, model_fname, trainer):
         # save the fine-tuned model
         output_model_path = f"{self.model_output_dir}/{model_fname}.pt"
-        self.model.save_pretrained(output_model_path)
-        
-        # return the path to the saved model
-        return output_model_path
+        trainer.save_model(output_model_path)
 
     def evaluate_model(self, model_fname: str, test_set: list) -> dict:
         """

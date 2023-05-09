@@ -99,7 +99,21 @@
               
               input[type="submit"]:hover {
                 background-color: #0062cc;
-              }              
+              }
+              
+              .large-textarea {
+                font-size: 16px;
+                padding: 10px;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                width: 100%;
+                max-width: 400px; /* add this line to limit the input element width */
+                box-sizing: border-box; /* add this line to make sure the max-width includes padding and border */
+                margin-bottom: 20px;
+                height: 80px;
+                resize: vertical; /* add this line to enable vertical resizing */
+                text-indent: 0; /* add this line to set the left margin to zero */
+              }
         </style>
     </head>
     <body>
@@ -124,6 +138,10 @@
                     <option value="Text Generation">Text Generation</option>
                     <option value="Text Classification">Text Classification</option>
                 </select>
+                <label for="model_desc">Model Description:</label>
+                <textarea name="model_desc" id="model_desc" class="large-textarea"></textarea>
+                
+                
                 <input type="submit" value="Create Model">
             </form>
         </section>
