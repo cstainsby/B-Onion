@@ -42,7 +42,8 @@ def get_hot_by_subreddit(praw_inst: PrawInstance, subreddit_name: str = "", limi
                 "title": post.title,
                 "upvotes": post.ups,
                 "downvotes": post.downs,
-                "selftext": post.selftext
+                "selftext": post.selftext,
+                "numcomments": post.num_comments
             }
     return hot_by_sub
 
@@ -150,7 +151,17 @@ def get_top_comments_and_top_replies_by_post_id(praw_inst: PrawInstance, post_id
 
 def get_post_by_id(praw_inst: PrawInstance, post_id: str):
     """Getter for a reddit post given its post_id"""
-    return praw_inst().submission(id=post_id)
+    post = praw_inst().submission(id=post_id)
+    post_dict = {
+        "id": post.id,
+        "title": post.title,
+        "upvotes": post.ups,
+        "downvotes": post.downs,
+        "selftext": post.selftext,
+        "numcomments": post.num_comments
+    }
+    print("PRAW SUB BY ID", post_dict)
+    return post_dict
 
 # ----------------------------------------------------------------------
 #           analysis helper functions

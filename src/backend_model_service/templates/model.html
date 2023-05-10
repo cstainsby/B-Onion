@@ -20,28 +20,6 @@
         background-color: #f2f2f2;
       }
 
-      .confusion-matrix {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-        grid-template-rows: repeat(auto-fill, minmax(60px, 1fr));
-        gap: 4px;
-        margin-bottom: 20px;
-      }
-
-      .confusion-matrix-cell {
-        border: 1px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-      }
-
-      .confusion-matrix-header {
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-      }
-
       body {
         font-family: Arial, sans-serif;
         background-color: #f7f7f7;
@@ -141,149 +119,121 @@
       input[type="submit"]:hover {
         background-color: #0062cc;
       }
+
+      .large-textarea {
+        font-size: 16px;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+        max-width: 400px; /* add this line to limit the input element width */
+        box-sizing: border-box; /* add this line to make sure the max-width includes padding and border */
+        margin-bottom: 20px;
+        height: 80px;
+        resize: vertical; /* add this line to enable vertical resizing */
+        text-indent: 0; /* add this line to set the left margin to zero */
+      }
+
+      .container {
+        display: flex;
+        padding-left: 48px;
+        padding-right: 48px;
+      }
+      
+      #model-section {
+        flex-basis: 500px; /* set the fixed width */
+        flex-grow: 0; /* don't allow the model section to grow */
+      }
+      
+      #feed-section {
+        justify-content: flex-start;
+        flex-grow: 1; /* allow the feed section to take up remaining space */
+      }
+      
       
     </style>
   </head>
   <body>
     <h1>Model Details</h1>
 
-    <section>
-        <h2>Model Name: <span id="model-name">{{ model_details.model_name }}</span></h2>
-        <p>Model ID: <span id="model-id">{{ model_details.id }}</span></p>
-        <p>Type: <span id="model-type">{{ model_details.model_type }}</span></p>
-        <p><b>Description:</b></p>
-        <p>{{ model_details.model_desc }}</p>
-    </section>
-
-    
-    
-    <section>
-        <div id="evaluation-metrics" style="display: none;">
-            <h2>Evaluation Metrics</h2>        
-            <ul>
-                <li>Number of Training Examples: <span id="num-training-examples">...</span></li>
-                <li>Number of Testing Examples: <span id="num-testing-examples">...</span></li>
-                <li>Perplexity: <span id="perplexity">...</span></li>
-                <li>BLEU Score: <span id="bleu-score">...</span></li>
-                <li>ROUGE: <span id="rouge">...</span></li>
-                <li>SelfBLEU: <span id="selfbleu">...</span></li>
-            </ul>
-        </div>
-      
-        <div id="confusion-matrix" style="display: none;">
-            <h2>Confusion Matrix</h2>
-            <div class="confusion-matrix">
-                <div class="confusion-matrix-header"></div>
-                <div class="confusion-matrix-header">Predicted Class</div>
-                <div class="confusion-matrix-header">Actual Class</div>
-                <!-- Cells will be added dynamically with JavaScript -->
-            </div>
-        </div>
-    </section>
-
-    <form action="">
-        <h2>Try it out</h2>
-        <p>Explain how it works</p>
-
-        <label for="try_model_prompt">Prompt:</label>
-        <input type="text" name="try_model_prompt" id="try_model_prompt" placeholder="Enter your prompt here">
-
-        <input type="submit" value="Go">
-
-        <p id="try_model_output"></p>
-    </form>
-
-    <script>
-      // Replace the placeholders (...) with the actual values using JavaScript
-     const trainingData = [
-        { columnName: "Text", dataType: "text" },
-        { columnName: "Label", dataType: "text" },
-      ];
-      const numTrainingExamples = 1000;
-      const numTestingExamples = 10;
-      const evaluationMetrics = {
-        perplexity: 5.67,
-        bleuScore: 0.83,
-        rouge: 0.68,
-        selfbleu: 0.75,
-    };
-    const confusionMatrix = [
-      [20, 5, 3],
-      [6, 18, 2],
-      [2, 4, 19],
-    ];
-    const classNames = ["Class A", "Class B", "Class C"];
+    <div class="container">
+      <div id="model-section">
+        <section>
+            <h2>Model Name: <span id="model-name">{{ model_details.model_name }}</span></h2>
+            <p>Type: <span id="model-type">{{ model_details.model_type }}</span></p>
+            <p><b>Description:</b></p>
+            <p>{{ model_details.model_desc }}</p>
+        </section>
   
-    // Set the text content of the elements
-    /*const trainingDataBody = document.getElementById("training-data");
-    for (const { columnName, dataType } of trainingData) {
-      const row = document.createElement("tr");
-      const nameCell = document.createElement("td");
-      const typeCell = document.createElement("td");
-      nameCell.textContent = columnName;
-      typeCell.textContent = dataType;
-      row.appendChild(nameCell);
-      row.appendChild(typeCell);
-      trainingDataBody.appendChild(row);
-    }*/
-    document.getElementById("num-training-examples").textContent =
-      numTrainingExamples;
-    document.getElementById("num-testing-examples").textContent =
-      numTestingExamples;
+  
+        <form>
+          <h2>Try it out</h2>
+          <p>{{ model_details.try_it_out_info }}</p>
 
-    // conditional rendering for type of model
-    if ("{{ model_details.model_type }}" === "Text Generation") {
-      // Show evaluation metrics
-      document.getElementById("evaluation-metrics").style.display = "block";
-      document.getElementById("perplexity").textContent =
-        evaluationMetrics.perplexity;
-      document.getElementById("bleu-score").textContent =
-        evaluationMetrics.bleuScore;
-      document.getElementById("rouge").textContent = evaluationMetrics.rouge;
-      document.getElementById("selfbleu").textContent =
-        evaluationMetrics.selfbleu;
-    } else if ("{{ model_details.model_type }}" === "Text Classification") {
-      // Show confusion matrix
-      document.getElementById("confusion-matrix").style.display = "block";
-      const matrix = document.getElementById("confusion-matrix");
-      // Add headers
-      const headerRow = document.createElement("div");
-      headerRow.className = "confusion-matrix-row";
-      headerRow.appendChild(document.createElement("div"));
-      for (const className of classNames) {
-        const headerCell = document.createElement("div");
-        headerCell.className = "confusion-matrix-header";
-        headerCell.textContent = className;
-        headerRow.appendChild(headerCell);
+          <div>
+            <label for="try_model_prompt">Prompt:</label>
+            <textarea type="text" name="text" id="try_model_prompt" class="large-textarea" placeholder="Enter your prompt here">
+              </textarea>
+          </div>
+          
+          <input type="submit" id="try_model_submit_btn" value="Go">
+          {% if class_label %}
+            <p>Classification: {{ class_label }}</p>
+          {% endif %}
+        </form>
+      </div>
+
+      <div id="feed-section">
+        <section>
+          <h2>Hot AITA Posts</h2>
+          <ul>
+            {% for post_key, post_values in trending_posts.items() %}
+              <li>
+                <p><strong>{{ post_values.title }}</strong></p>
+                <p>up: {{ post_values.upvotes }}</p>
+                <p>Reference code: @reddit-{{ post_key }}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    const postEditionToReddit = async (subreddit, edition) => {
+      console.log("subreddit", subreddit, "edition", edition);
+      const url = '/reddit/post';
+      const data = {
+        subreddit_name: subreddit,
+        title: edition.title,
+        content: edition.content
       }
-      matrix.appendChild(headerRow);
-      // Add rows
-      for (let i = 0; i < confusionMatrix.length; i++) {
-        const row = document.createElement("div");
-        row.className = "confusion-matrix-row";
-        const actualCell = document.createElement("div");
-        actualCell.className = "confusion-matrix-header";
-        actualCell.textContent = classNames[i];
-        row.appendChild(actualCell);
-        for (let j = 0; j < confusionMatrix[i].length; j++) {
-          const cell = document.createElement("div");
-          cell.className = "confusion-matrix-cell";
-          cell.textContent = confusionMatrix[i][j];
-          row.appendChild(cell);
-        }
-        matrix.appendChild(row);
-      }
-      // Add column headers
-      const headerCell = document.createElement("div");
-      headerCell.className = "confusion-matrix-header";
-      headerCell.textContent = "Actual Class";
-      matrix.appendChild(headerCell);
-      for (const className of classNames) {
-        const headerCell = document.createElement("div");
-        headerCell.className = "confusion-matrix-header";
-        headerCell.textContent = className;
-        matrix.appendChild(headerCell);
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      };
+    
+      try {
+        const res = await fetch(url, options);
+        const result = await res.json();
+        return result;
+      } catch (error) {
+        console.error(error);
       }
     }
+
+    let try_it_out_prompt = document.getElementById("try_model_prompt")
+    try_it_out_prompt.textContent = "";
+
+    let try_it_out_post_btn = document.getElementById("try_model_submit_btn");
+    try_it_out_post_btn.onclick = () => {
+      let current_text = try_it_out_prompt.textContent;
+      useModel(current_text);
+    }
+    
   </script>
-  
+</html>

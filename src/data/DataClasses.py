@@ -45,9 +45,8 @@ class AITAData():
     def format_data_for_classification(self, post_title: str, post_content: str, classification: str = None):
         """Format a posts data into a prompt completion pair which can be used by openai"""
         prompt = "title: {}\ncontent: {}".format(post_title, post_content)
-        completion = "{}".format(classification) if classification else "None"
-
-        return prompt, completion
+        class_id = "{}".format(classification) if classification else "None"
+        return prompt, class_id
 
 
     def store_post_to_class_data(self, filename: str, classification_df: pd.DataFrame) -> None:
@@ -59,7 +58,7 @@ class AITAData():
 
         out_data = pd.DataFrame({
             "prompt": [],
-            "completion": []
+            "class": []
         })
 
         for _, row in classification_df.iterrows():
@@ -67,9 +66,9 @@ class AITAData():
             content = row["post_content"]
             classification = row["class"]
 
-            prompt, completion = self.format_data_for_classification(title, content, classification)
+            prompt, class_id = self.format_data_for_classification(title, content, classification)
 
-            out_data.loc[len(out_data.index)] = [prompt, completion]
+            out_data.loc[len(out_data.index)] = [prompt, class_id]
 
         out_data.to_csv(out_file_path, index=False)
 

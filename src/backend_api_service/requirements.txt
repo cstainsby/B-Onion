@@ -6,6 +6,4 @@ flask_restful
 flask-cors 
 h5py
 praw 
-openai
 google-cloud-bigquery
-dotenv

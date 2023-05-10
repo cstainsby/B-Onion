@@ -2,7 +2,7 @@ import os
 
 HOSTNAME = "gcr.io"
 PROJECT_ID = "bonion"
-TARG_IMG = "full-demo-app"
+TARG_IMG = "backend_api_service"
 TAG = "latest-demo"
 
 
@@ -27,7 +27,7 @@ def build_container():
 
 def run_local_container():
   CMD = """
-    docker run -p 3000:3000 {}/{}/{}:{}
+    docker run -p 8000:8000 {}/{}/{}:{}
   """.format(HOSTNAME, PROJECT_ID, TARG_IMG, TAG)
   print("RUNNING:", CMD)
   os.system(CMD)
@@ -40,7 +40,7 @@ def push_container():
   os.system(CMD)
 
 if __name__=="__main__":
-  login()
-  # build_container()
-  run_local_container()
-  # push_container()
+  # login()
+  build_container()
+  # run_local_container()
+  push_container()

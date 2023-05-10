@@ -1,68 +1,75 @@
 from flask import Flask, request, jsonify, render_template
-from text_gen_model import TextGenModelManager
 from saved_models import model_storer
+import AITAclassmodel_utils
+import app_utils
+import requests
 
 app = Flask(__name__)
-# model_manager = TextGenModelManager()
+
+
+# class model info 
+
 
 @app.route("/", methods=["GET"])
 def home_view():
-    # model_ids = model_manager.get_existing_fine_tuned_models()
     model_ids = model_storer.get_existing_fine_tuned_models()
 
     return render_template("index.html", model_ids=model_ids)
-
-# @app.route("/", methods=["POST"])
-# def generate_text():
-#     try:
-#         # get prompts from request body
-#         data = request.json
-#         prompts = data.get("prompts")
-
-#         # generate text for each prompt
-#         generated_texts = model_manager.generate_text_for_each_prompt(prompts)
-
-#         # return generated texts
-#         return jsonify({"generated_texts": generated_texts})
-#     except Exception as e:
-#         # handle errors
-#         return jsonify({"error": str(e)}), 500
     
 
-@app.route("/models/<model_id>", methods=["GET"])
-def get_model_details(model_id):
-    model_details = model_storer.get_model_info(model_id)
-    return render_template("model.html", model_details=model_details)
+@app.route("/models/<model_name>", methods=["GET"])
+def get_model_details(model_name):
+    model_details = model_storer.get_model_info(model_name)
 
-@app.route("/models/<model_id>", methods=["POST"])
-def generate_text(model_id):
-    pass
+    text = request.args.get("text")
 
-@app.route("/create_model", methods=["POST"])
-def create_model():
-    data = request.form
-    model_name = data["model_name"]
-    model_type = data["model_type"]
-    model_desc = data["model_desc"]
+    trending_posts = requests.get(f"https://backend-api-service-zkidffnq6a-uc.a.run.app/reddit/hot/amitheasshole").json()
 
-    # Create a new model using the TextGenModelManager class
-    model_manager = TextGenModelManager()
-    model = model_manager.model
+    if text is not None:
+        reddit_ids_to_include = app_utils.scan_for_reddit_tags(text)
 
-    # Save the model to disk
-    model_output_dir = os.path.join(model_manager.model_output_dir, model_name)
-    model.save_pretrained(model_output_dir)
+        # process any reddit tags if they exist
+        reddit_str = ""
+        if len(reddit_ids_to_include) > 0:
+            reddit_posts_to_id = [
+                requests.get(f"https://backend-api-service-zkidffnq6a-uc.a.run.app/reddit/post/{post_id}") for post_id in reddit_ids_to_include
+                ]
 
-    # Return a response
-    response = {
-        "status": "success",
-        "message": "Model created successfully",
-        "model_name": model_name,
-        "model_type": model_type,
-        "model_desc": model_desc,
-        "model_output_dir": model_output_dir
-    }
-    return jsonify(response)
+            # just going to include the first liked reddit post
+            reddit_str = "title: {}\ncontent: {}".format(reddit_posts_to_id[0].json()["title"], reddit_posts_to_id[0].json()["selftext"])
+            # reddit_edition_strs = [
+            #     app_utils.reddit_post_to_edition_str(reddit_post) for reddit_post in reddit_posts_to_id if reddit_post.ok
+            # ]
+            text = reddit_str
+
+        aita_class_model, aita_tokenizer = AITAclassmodel_utils.get_model_and_tokenizer()
+        
+        if model_name == "AITAclassmodel":
+            class_label = AITAclassmodel_utils.predict(aita_class_model, aita_tokenizer, text)
+    else:
+        class_label = None
+
+    model_details = model_storer.get_model_info(model_name)
+    return render_template("model.html", model_details=model_details, class_label=class_label, trending_posts=trending_posts)
+
+
+@app.route("/models/<model_name>", methods=["POST"])
+def use_model(model_name):
+    print("test")
+    req = request.get_json()
+    print(req)
+    text = req["text"]
+
+    print("WAITING")
+    aita_class_model, aita_tokenizer = AITAclassmodel_utils.get_model_and_tokenizer()
+    
+    if model_name == "AITAclassmodel":
+        class_label = AITAclassmodel_utils.predict(aita_class_model, aita_tokenizer, text)
+        print("PREDICTED CLASS LABEL", class_label)
+    model_details = model_storer.get_model_info(model_name)
+    return render_template("model.html", model_details=model_details, class_label=class_label)
+
+
 
 
 if __name__ == '__main__':

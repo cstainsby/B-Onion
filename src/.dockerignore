@@ -9,3 +9,8 @@ run_local.py
 google_secret_access.py
 
 settings.env
+
+bert-finetune-sem_eval-english/
+model_env/
+notebooks/
+saved_data/

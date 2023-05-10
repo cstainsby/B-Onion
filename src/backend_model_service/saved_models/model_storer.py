@@ -126,7 +126,7 @@ def load_model(model_id):
 
     return model
 
-def get_model_info(model_id: int):
+def get_model_info(model_name: str):
     """
     Search for the row in the CSV file with the matching ID.
     """
@@ -134,11 +134,10 @@ def get_model_info(model_id: int):
     with open(info_csv_path, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         for row in csv_reader:
-            if int(row['id']) == int(model_id):
-                print("found")
+            if row['model_name'] == str(model_name):
                 return row
         else:
-            raise ValueError(f"No model found with ID {model_id}.")
+            raise ValueError(f"No model found with Name {model_name}.")
     
     return None
 
@@ -150,7 +149,6 @@ def get_existing_fine_tuned_models() -> list:
         
         # Get all filenames in the directory
         model_save_loc = str(store_root_path) + "/store/"
-        print("MODEL SAVE LOC", model_save_loc)
         filenames = os.listdir(model_save_loc)
 
         # Iterate over the filenames and split them into their base names and extensions

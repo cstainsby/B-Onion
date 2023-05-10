@@ -1,10 +1,9 @@
 import os
 import json 
 from pathlib import Path
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from flask import Flask, render_template, request, Response
 
-import app_utils as app_utils
 import praw_instance as praw_instance
 
 
@@ -15,9 +14,9 @@ local_env_path = app_root_path / Path("./settings.env")
 # if there is a settings.env file to reach out to for importing environment variables
 #   do it 
 # this will only happen in local builds
-if local_env_path.exists():
-    print("loading environment variables from local file")
-    load_dotenv(dotenv_path=local_env_path)
+# if local_env_path.exists():
+#     print("loading environment variables from local file")
+#     load_dotenv(dotenv_path=local_env_path)
 
 
 
@@ -74,80 +73,27 @@ def browse_amitheasshole():
     
     return render_template("home.html", trending_dict=trending_dict)
 
+@app.route("/reddit/post/<post_id>", methods=["GET"])
+def get_post_by_id(post_id):
+    post = praw_instance.get_post_by_id(praw_inst, post_id)
+    print("POST", post)
+    post_json = json.dumps(post)
+    res = Response(response=post_json, mimetype="application/json")
+    return res
+
+@app.route("/reddit/hot/<subreddit_name>", methods=["GET"])
+def get_hot_posts_from_AITA(subreddit_name):
+    hot_posts = praw_instance.get_hot_by_subreddit(praw_inst, subreddit_name)
+    reformated_posts = {}
+    for key, val in hot_posts.items():
+        reformated_posts[key.id] = val
+    post_json = json.dumps(reformated_posts)
+    res = Response(response=post_json, mimetype="application/json")
+    return res
+
 # ---------------------------------------------------------------------------
 #   POST endpoints
 # ---------------------------------------------------------------------------
-
-# @app.route("/openai/prompt", methods=["POST"])
-# def send_open_ai_prompt():
-#     """
-#     input in body includes:
-#         current_prompt: a string of the current user input prompt,
-#         editions: all current editions in a list
-#     """
-#     req = request.get_json()
-#     # this prompt will contain everything that will inform how to generate the text
-#     prompt = req["prompt_contents"]
-#     currentEditions = req["editions"]
-
-#     # scan for any tags in the prompt
-#     edition_ids_to_include = app_utils.scan_for_edition_tag_ids(prompt)
-#     reddit_ids_to_include = app_utils.scan_for_reddit_tags(prompt)
-
-#     # process any reddit tags if they exist
-#     reddit_edition_strs = []
-#     if len(reddit_ids_to_include) > 0:
-#         reddit_posts_to_id = [
-#             praw_instance.get_post_by_id(praw_inst, post_id) for post_id in reddit_ids_to_include
-#             ]
-#         reddit_edition_strs = [
-#             app_utils.reddit_post_to_edition_str(reddit_post) for reddit_post in reddit_posts_to_id
-#         ]
-
-#     # process tagged editions if there are any
-#     editions_strs = []
-#     if len(edition_ids_to_include) > 0:
-#         editions_to_include_dict = app_utils.get_included_editions(currentEditions, edition_ids_to_include)
-#         editions_strs = app_utils.editions_to_strs(editions_to_include_dict)
-
-
-#     # format all linked editions into something that can be processed by our defined input style
-#     formated_edition_str = app_utils.formated_req_edition_str(
-#         editions_strs + reddit_edition_strs
-#         )
-
-#     openai_prompt = """
-#     Your job will be to help the user create text based on the prompts they provide.  
-
-#     An Edition will be defined as
-#         Edition:
-#             id: an integer
-#             title: a string title for the edition
-#             content: a string of content for the edition
-
-#     Your text responses should be formatted to include
-#             a single Edition with nothing after:
-#                 should be the the same format listed above, without an id 
-
-#         current_prompt:
-#             {current_prompt}
-#         referenced_editions:
-#             {editions_str}
-#     """.format(current_prompt=prompt, editions_str=formated_edition_str)
-
-#     openai_res = openai.Completion.create(
-#         model=openai_model_def,
-#         prompt=openai_prompt,
-#         temperature=0.5,
-#         max_tokens=300)
-
-#     openai_res_text = app_utils.get_text_from_openai_res(openai_res)
-
-#     formated_openai_res = app_utils.get_edition_items_from_openai_res_text(openai_res_text)
-
-#     res = Response(json.dumps(formated_openai_res), mimetype="application/json")
-#     return res
-
 @app.route("/reddit/submission/post", methods=["POST"])
 def make_submission_to_reddit():
     req = request.get_json()
@@ -178,4 +124,4 @@ def make_comment_on_submission_to_reddit():
 
 if __name__ == '__main__':
     DEBUG_MODE = True if os.environ.get("FLASK_DEBUG") and os.environ.get("FLASK_DEBUG") == "true" else False
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=8000)

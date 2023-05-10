@@ -1,8 +1,6 @@
 import re
 import random
 
-from praw_instance import PrawInstance
-
 
 # -----------------------------------------------------------------------
 #       Scan Functions
@@ -96,49 +94,3 @@ def clean_res_str(res_str: str):
         cleaned_res_str = cleaned_res_str.replace(char, " ")
     print("clean text" + cleaned_res_str)
     return cleaned_res_str
-
-
-def get_text_from_openai_res(res) -> str:
-    num_choices = len(res["choices"])
-    text = str(res["choices"][random.randint(0, num_choices - 1)]["text"])
-
-    # clean data 
-    clean_text = clean_res_str(text)
-
-    return clean_text
-
-def get_edition_items_from_openai_res_text(res_text: str) -> dict:
-    """Gets all edition contents from an openai res
-
-        randomly selects which openai choice to return
-        
-        returns dictionary with edition contents
-    """
-    edition_dict = {}
-    edition_dict["title"] = ""
-    edition_dict["content"] = ""
-    
-    title_pattern = r"title:(\s|\S)*content:"
-    content_pattern = r"content:(\s|\S)*"
-
-    title_search_obj = re.search(title_pattern, res_text)
-    content_search_obj = re.search(content_pattern, res_text)
-
-    # define the lengths of the tags included in the openai res 
-    #   to make code more readable
-    content_tag_len = 8
-    title_tag_len = 6
-
-    if title_search_obj:
-        extracted_title = title_search_obj.group(0)
-        # remove "title:" and "content:" tags
-        trimmed_title = extracted_title[title_tag_len:len(extracted_title)-content_tag_len]
-        edition_dict["title"] = trimmed_title
-
-    if content_search_obj:
-        extracted_content = content_search_obj.group(0)
-        # trim "content:" tag at end
-        trimmed_content = extracted_content[content_tag_len:]
-        edition_dict["content"] = trimmed_content
-        
-    return edition_dict
