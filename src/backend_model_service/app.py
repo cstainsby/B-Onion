@@ -73,4 +73,4 @@ def use_model(model_name):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080) 
+    app.run(debug=True, port=8080)
