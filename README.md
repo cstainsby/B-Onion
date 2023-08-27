@@ -16,7 +16,8 @@ During development I encoutered many roadblocks which I had to accomodate for wh
 1. Changes to the reddit API made retriving large amounts of data prohibitivley expensive as well making it far more difficult to train a data hungry model like the transformer I was using. I had to again settle for just classification of the AITA posts. 
 
 ## Project Architecture
-![architecture]("imgs/AITA-architecture.png")
+![architecture](imgs/AITA-architecture.png)
+
 
 ## Performance of the Classifier
 My classifier did actually perform somewhat well achieving an on average **80% accuracy**. However this is very likely due to the overrepresentation of one type of classification (NTA). The data I pulled was representative of this trend which made it difficult for the classifier to recognize when to guess anything other than NTA.
